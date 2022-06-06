@@ -133,8 +133,8 @@ def StackProccessed(inpath,exper,runs,method='bincount'):
     except:
         print('more than one unique q axis')
         
-    AllData=np.array(AllData)
-    AllBC=np.array(AllBC)
+    AllData=np.array(AllData) # runs x ts x phis x qs array
+    AllBC=np.array(AllBC) #runs x ts 
     
     ##  weigh each run by number of shots per bin and sum, then divide by total shots in bin
     if method=='bincount':
@@ -142,16 +142,26 @@ def StackProccessed(inpath,exper,runs,method='bincount'):
         sumD=np.nansum(AllD2,axis=0) ##total signal for each bin
         sumBC=np.nansum(AllBC,axis=0) ##total shots per bin
         aveD=divAny(sumD,sumBC) #average signal per shot per bin
-        return aveD, sumBC, ts, qs
+        aveD[np.nonzero(sumBC==0),:,:]=np.nan
+        stackDict={'aveData':aveD,'sumBC':sumBC,'ts':ts,'qs':qs,'runs':runs,'method':method}
+        return stackDict
     
     if method=='WAve':
         AllErr=np.array(AllErr)
         aveD,Derr=WAve(AllData,AllErr,axis=0)
-        return aveD, Derr, ts, qs
+        stackDict={'aveData':aveD,'errData':Derr'ts':ts,'qs':qs,'runs':runs,'method':method}
+        return stackDict
     
     if method=='Sum':
         sumD=np.nansum(AllData,axis=0)
-        return sumD, ts, qs
+        sumBC=np.nansum(AllBC,axis=0) ##total shots per bin
+        stackDict={'sumData':sumD,'sumBC':sumBC,'ts':ts,'qs':qs,'runs':runs,'method':method}
+        return stackDict
+        
+    
+    
+    
+        
         
     
     
