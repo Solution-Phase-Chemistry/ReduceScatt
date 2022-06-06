@@ -336,7 +336,35 @@ def doDifference(paramDict,outDict):
     
     
     
+
     
+def AveAllShots(paramDict, outDict):
+    ''' Averages difference signal for all shots, returns a 1xqxphi array
+    use this for example, if you have only one time delay at long times'''
+    
+    print('Averaging all shots difference signals')
+    
+    #inputs
+    qerr=paramDict['useAzav_std']
+    onData=outDict['diff_Data']
+    
+    if qerr=='WAve':
+        yerr=outDict['h5Dict']['azav_std']
+        diff_bin, diff_std= WAve(onData,yerr,axis=0)
+        
+    else:
+        diff_bin=np.nanmean(onData,axis=0)
+        diff_std=StandErr(onData,0)
+    
+    diff_bin=np.expand_dims(diff_bin,axis=0)
+    diff_std=np.expand_dims(diff_std,axis=0)
+    outDict['diff_bin']=diff_temp
+    outDict['diff_std']=ds_temp
+    
+    print('Average done!')
+    
+    
+
     
     
     
