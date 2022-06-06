@@ -3,7 +3,7 @@ Reduce scattering data broken up into smaller functions
 
 ## There are three main dictionaries to run the code:  
 ### Input dictionaries:
-paramDict:  see .txt file of possible parameters and explanations, these are processing parameters
+paramDict:  see .txt file of possible parameters and explanations, these are processing parameters \
 varDict:  dictionary of variables desired and used by code and where they are found in the .h5 file
 
 ### Output :
