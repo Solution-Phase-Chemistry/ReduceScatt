@@ -149,7 +149,7 @@ def StackProccessed(inpath,exper,runs,method='bincount'):
     if method=='WAve':
         AllErr=np.array(AllErr)
         aveD,Derr=WAve(AllData,AllErr,axis=0)
-        stackDict={'aveData':aveD,'errData':Derr'ts':ts,'qs':qs,'runs':runs,'method':method}
+        stackDict={'aveData':aveD,'errData':Derr,'ts':ts,'qs':qs,'runs':runs,'method':method}
         return stackDict
     
     if method=='Sum':
