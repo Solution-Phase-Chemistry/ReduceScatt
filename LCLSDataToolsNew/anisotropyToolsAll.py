@@ -10,7 +10,7 @@ from scipy.special import legendre
 from scipy.integrate import simpson, trapezoid
 # from scipy.linalg import lstsq
 from scipy import interpolate as inp
-from LCLSDataTools.plottingTools import *
+from LCLSDataToolsNew.plottingTools import *
 from numpy.linalg import inv
 from numpy.linalg import lstsq
 from sklearn.linear_model import RANSACRegressor as RSC

@@ -27,6 +27,7 @@ from LCLSDataToolsNew.DiffBinFns import *
 
 
 def doAnisotropy(paramDict,outDict):
+    print('start anisotropy')
     shift_n=paramDict['shift_n']
     ddata=outDict['diff_bin']
     try:
@@ -71,21 +72,33 @@ def ReduceData(inDir,exper,runs,outDir,paramDict,varDict):
         fname=inDir+exper+'_Run%04i.h5'%run
         print('loading ', fname)
         outDict={}
+        then=time.time()
         LoadH5(fname,varDict,paramDict, outDict)
         setupFilters(paramDict,outDict)
         I0Filters(paramDict,outDict)
         eBeamFilter(paramDict,outDict)
         TTfilter(paramDict,outDict)
+        now = time.time() #Time after it finished
+        print(now-then, " seconds")
+        
         MakeScanAx(paramDict,outDict,tt_corrNew=None)
         DarkSubtract(paramDict,outDict)
         EnergyCorr(paramDict,outDict)
         DetectorNonlinCorr(paramDict,outDict)
         NormalFactor(paramDict,outDict)
         doDifference(paramDict,outDict)
+        now = time.time() #Time after it finished
+        print(now-then, " seconds")
+    
         doTimeBinning(paramDict,outDict)
+        now = time.time() #Time after it finished
+        print(now-then, " seconds")
+        
         if paramDict['aniso']:
             doAnisotropy(paramDict,outDict)
         saveDictionary(outDir,paramDict,outDict)
+        now = time.time() #Time after it finished
+        print(now-then, " seconds")
         
         
         

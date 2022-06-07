@@ -3,8 +3,8 @@ from matplotlib import pyplot as plt
 import matplotlib
 import time
 import warnings
-from LCLSDataTools.binningTools import *
-from LCLSDataTools.SVDTools import *
+# from LCLSDataToolsNew.binningTools import *
+from LCLSDataToolsNew.SVDTools import *
 from cycler import cycler
 able_to_pdf=True
 try:

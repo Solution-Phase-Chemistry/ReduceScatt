@@ -154,7 +154,7 @@ def BinStat(x,y,n,yerr=None,binByPoints=True,showplot=False,set_bins=None,count=
                 out_temp=BinInQ(x,y[:,i,:],edges,yerr=None)
                 binmean[i]=out_temp['binmean']
                 binstd[i]=out_temp['binstd']
-                print(i, 'Done')
+                # print(i, 'Done')
             #store outputs with array dimensions bins,phis, q
             outfile['binmean']=np.transpose(binmean,(1,0,2))
             outfile['binstd']=np.transpose(binstd,(1,0,2))
