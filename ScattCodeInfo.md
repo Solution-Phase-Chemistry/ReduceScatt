@@ -247,6 +247,7 @@ paramDict= {
 	def eBeamFilter(paramDict,outDict)
 	def TTfilter (paramDict, outDict)
 	def Enforcelso (paramDict, outDict)
+	def saveReduction(outDir,outDict)
 
 ## SVDTools.py
 	def do_svd(qs,ts, data, n=5, smooth=None, showplot=True, fig=None,
