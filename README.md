@@ -11,7 +11,7 @@ outDict:  see ScattCodeInfo.md files for what parameters may be saved in this di
 
 
 ## Notebooks 
-Master_XSS: reduction and useful jupyter notebook cells for fitting data and stacking
+Master_XSS: reduction and useful jupyter notebook cells for fitting data and stacking \
 XSS_no_scanvar: example of how to reduce data with no scan variable
 
 ### older notebooks
