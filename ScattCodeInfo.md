@@ -91,18 +91,18 @@ paramDict= {
 
 # Where is my function?
 ## anisotropyToolsAll.py
-def theil_sen_stats(y,x)
-def SOS2(dat, phis, fil=None, shift_n=0,deg=None)
-def SOS2W(dat, phis,weights=None,shift_n=0,deg=None,thresh=10,DoPrint=True)
-def SOS2WT(dat, phis,weights=None,fil=None,shift_n=0,deg=None,thresh=10)
-def SOS2_check(dat,qs,phis,trange='All',lim=None,calc2=False)
-def SOS2_Fine(dat, qs, phis, shiftLim= (0,360), step=10,trange='All', lim=None)
-def SOS2Int(data,qs,phisln,shift_n=0)
-def Snint(nn, data, as, phisln, shift _n=0, method='trap')
-def SnintT(nn,data, qs,phisln, shift_n=0, method='trap")
-def Sn_check(nn,dat, qs,phis,trange='All', lim=None, shifts='All')
-def SnFit(nn,data, qs, phisln,lam, shift_n=0)
-def SnFitT (n,data1, qs, phisln, lam,shift_n=0)
+def theil_sen_stats(y,x) \
+def SOS2(dat, phis, fil=None, shift_n=0,deg=None) \
+def SOS2W(dat, phis,weights=None,shift_n=0,deg=None,thresh=10,DoPrint=True) \
+def SOS2WT(dat, phis,weights=None,fil=None,shift_n=0,deg=None,thresh=10) \
+def SOS2_check(dat,qs,phis,trange='All',lim=None,calc2=False) \
+def SOS2_Fine(dat, qs, phis, shiftLim= (0,360), step=10,trange='All', lim=None) \
+def SOS2Int(data,qs,phisln,shift_n=0) \
+def Snint(nn, data, as, phisln, shift _n=0, method='trap') \
+def SnintT(nn,data, qs,phisln, shift_n=0, method='trap") \
+def Sn_check(nn,dat, qs,phis,trange='All', lim=None, shifts='All') \
+def SnFit(nn,data, qs, phisln,lam, shift_n=0) \
+def SnFitT (n,data1, qs, phisln, lam,shift_n=0) \
 def StandErr(A,axis=None)
 
 ## binningToolsErr.py
