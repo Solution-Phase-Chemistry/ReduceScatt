@@ -232,7 +232,7 @@ def BinStatbyAxis(x,y,n,yerr=None,binByPoints=True,showplot=False,set_bins=None,
 
     else:
         outfile.update(BinInQ(x,y,edges,yerr=yerr))
-             
+    return outfile
         
 
   

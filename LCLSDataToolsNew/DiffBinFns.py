@@ -107,7 +107,7 @@ def EnergyCorr(paramDict,outDict):
     f_intens=outDict['filters']['f_good']
     f_loff=outDict['filters']['f_loff']
     azav_temp=outDict['h5Dict']['azav']
-    Isum=outDict['I0']
+    Isum=outDict['Iscat']
     qs=outDict['h5Dict']['qs']
     
     #energ_corr is name of file with curve and params for fit to ebeam/photon_energy. corr=correction curve (q),params=params for polyfit
@@ -159,7 +159,7 @@ def DetectorNonlinCorr(paramDict,outDict):
     cspad_azav=outDict['h5Dict']['azav']
     qs=outDict['h5Dict']['qs']
     phis=outDict['h5Dict']['phis']
-    Isum=outDict['I0']
+    Isum=outDict['Iscat']
     f_xon=outDict['filters']['f_xon']
     f_intens=outDict['filters']['f_good']
     f_loff=outDict['filters']['f_loff']
@@ -263,7 +263,7 @@ def NormalFactor(paramDict,outDict):
     print('normalize data')
     
     qnorm=paramDict['qnorm']
-    Isum=outDict['I0']
+    Isum=outDict['Iscat']
     cspad_azav=outDict['h5Dict']['azav']
     f_intens=outDict['filters']['f_good']
     f_loff=outDict['filters']['f_loff']
@@ -331,6 +331,7 @@ def doDifference(paramDict,outDict):
     outDict['x_Data']=x[f_intens&f_lon]
     outDict['diff_Data']=diff[f_intens&f_lon]
     
+    
     print('Difference Signal Done!')
     
     
@@ -358,8 +359,10 @@ def AveAllShots(paramDict, outDict):
     
     diff_bin=np.expand_dims(diff_bin,axis=0)
     diff_std=np.expand_dims(diff_std,axis=0)
-    outDict['diff_bin']=diff_temp
-    outDict['diff_std']=ds_temp
+    outDict['diff_bin']=diff_bin
+    outDict['diff_std']=diff_std
+    outDict['xcenter']=[0]
+    outDict['xbin_occupancy']=onData.shape[0]
     
     print('Average done!')
     
@@ -407,7 +410,11 @@ def doTimeBinning(paramDict,outDict):
                                   showplot=True,set_bins=None,count=True)
     
     #binning outputs
-    outDict['xbin_occupancy']=bin_outfile['bincount']
+    print(bin_outfile.keys())
+    try:
+        outDict['xbin_occupancy']=bin_outfile['bincount']
+    except:
+        print('bincount not saved')
     diff_temp=bin_outfile['binmean']
     ds_temp=bin_outfile['binstd']
     outDict['xcenter']=bin_outfile['xcenter']

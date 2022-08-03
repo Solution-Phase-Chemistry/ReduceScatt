@@ -113,13 +113,14 @@ def MaskAzav(paramDict,outDict,listBinInd=None):
     
     
 def setupFilters(paramDict,outDict):
-    ''' calculate I0 and set up laser on/off etc filters'''
+    ''' calculate Iscat and set up laser on/off etc filters'''
     
-    ## calculate I0 aka Isum (but actually average?) check this
+    ## calculate Iscat aka Isum (but actually average?) check this
     azav_temp=outDict['h5Dict']['azav']
-    I0=np.nanmean(azav_temp,(1,2)) #mean along 2 axes
-    outDict['I0']=I0
-    print('calculated I0') 
+    Iscat=np.nanmean(azav_temp,(1,2)) #mean along 2 axes
+    outDict['Iscat']=Iscat
+    outDict['numshots']=azav_temp.shape[0]
+    print('calculated Iscat') 
     
     
     ### set up filters
@@ -137,27 +138,29 @@ def setupFilters(paramDict,outDict):
     
     
 
-def I0Filters(paramDict,outDict):
+def IscatFilters(paramDict,outDict):
     '''
-    if corr_filter then use ipm thresholds and I0/ipm correlation fit to filter
-    histogram filter of I0 80%'''
+    if corr_filter then use ipm thresholds and Iscat/ipm correlation fit to filter
+    histogram filter of Iscat 80%'''
     
-    I0=outDict['I0']
+    Iscat=outDict['Iscat']
     f_xon=outDict['filters']['f_xon']
-    I0thresh=paramDict['I0_threshold']
+    Iscat_thresh=paramDict['Iscat_threshold']
     
         ##create filter on xray intensity keeping 80% of shots
-    l,r,frac,f_I0=slice_histogram(I0,f_xon&(I0>I0thresh),0.80, 
+    l,r,frac,f_Iscat=slice_histogram(Iscat,f_xon&(Iscat>Iscat_thresh),0.80, 
                                       showplot=paramDict['show_filters'], fig='red', sub=221)
-    outDict['filters']['f_I0']=f_I0
-    outDict['filters']['f_good']=f_I0&f_xon ##formerly known as f_intens
+    outDict['filters']['f_Iscat']=f_Iscat
+    outDict['filters']['f_good']=f_Iscat&f_xon ##formerly known as f_intens
     
+    ipmkey='ipm'+str(paramDict['ipm'])
+    ipmi=outDict['h5Dict'][ipmkey]
     if paramDict['corr_filter']:
         print('making correlation filter')
         
         ##set ipm thresholds
-        ipmkey='ipm'+str(paramDict['ipm'])
-        ipmi=outDict['h5Dict'][ipmkey]
+        # ipmkey='ipm'+str(paramDict['ipm'])
+        # ipmi=outDict['h5Dict'][ipmkey]
         ipmfilt=np.full_like(ipmi,1)
         if paramDict['ipm_filter'][0] != None:
             ipmfilt=np.logical_and((ipmfilt),(ipmi>paramDict['ipm_filter'][0]))
@@ -169,9 +172,9 @@ def I0Filters(paramDict,outDict):
         thresh=10
         
         #RANSAC fit to line
-        nanfilt=~np.isnan(I0)&~np.isnan(ipmi)&(ipmfilt)&(I0>I0thresh)
+        nanfilt=~np.isnan(Iscat)&~np.isnan(ipmi)&(ipmfilt)&(Iscat>Iscat_thresh)
         ipm1=np.expand_dims(ipmi[nanfilt],axis=1)
-        Isum1=I0[nanfilt]
+        Isum1=Iscat[nanfilt]
 
         RSCthresh=10 #inlier/outlier threshold
         trialN=100 #number of RANSAC trials to preform
@@ -198,7 +201,7 @@ def I0Filters(paramDict,outDict):
         line_y=ipm1[in_mask]*mm+bb
         print('correlation equation = %e x +%e' %(mm,bb))
         print('fraction of data kept %e' %(Isum1[in_mask].shape[0]/Isum1.shape[0]))
-        f_corr=np.zeros(I0.shape).astype(bool)
+        f_corr=np.zeros(Iscat.shape).astype(bool)
 #                 print(in_mask.shape)
 #                 print(nanfilt.shape)
         f_corr[nanfilt]=in_mask
@@ -214,11 +217,11 @@ def I0Filters(paramDict,outDict):
             plt.scatter(ipm1[in_mask],Isum1[in_mask],marker='.',color='black')
             plt.plot(ipm1[in_mask],line_y,color='r')
         else:
-            nanfilt=~np.isnan(I0)&~np.isnan(ipmi)
-            plt.hist2d(ipmi[nanfilt],I0[nanfilt],100,cmap='Greys',
+            nanfilt=~np.isnan(Iscat)&~np.isnan(ipmi)
+            plt.hist2d(ipmi[nanfilt],Iscat[nanfilt],100,cmap='Greys',
                        norm=mpl.colors.SymLogNorm(linthresh=1, linscale=1))
             plt.xlabel(ipmkey)
-            plt.ylabel('I0')
+            plt.ylabel('Iscat')
             plt.title('log of hist of shots')
 
             
@@ -280,7 +283,10 @@ def TTfilter(paramDict,outDict):
     f_good=outDict['filters']['f_good']
 
     ## filter on TT amplitude
-    f_ttamp=( ttamp>0.01) #add this in if ttool seems suspect
+    
+    f_ttamp=(ttamp>0.02) #add this in if ttool seems suspect
+    
+    
 
     ##filter based on TT position
     l,r,frac,f_ttfwhm=slice_histogram(ttfwhm,
@@ -301,7 +307,13 @@ def TTfilter(paramDict,outDict):
 
 
 
-    
+def saveReduction(outDir,outDict):
+    basename=outDict['h5name']
+    plt.figure('red')
+    figdir = outDir + 'figures/'
+    plt.tight_layout()
+    plt.subplots_adjust(top=0.95)
+    plt.savefig(figdir+basename+'_reduction.png')   
 
     
     
@@ -312,7 +324,7 @@ def EnforceIso(paramDict,outDict):
     f_loff=outDict['filters']['f_loff']
     f_intens=outDict['filters']['f_good']
     azav=outDict['h5Dict']['azav']
-    Isum=outDict['I0']
+    Isum=outDict['Iscat']
     corr=np.array([0])
     if ((np.sum(corr)/corr.size)<0.8) or (np.nanmax(corr)>4):
         random_sample=np.random.randint(sum(f_loff&f_intens),size=400) #500 random off shots

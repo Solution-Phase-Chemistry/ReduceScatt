@@ -597,7 +597,7 @@ def Sn_check(nn,dat,qs,phis,trange='All',lim=None,shifts='All'):
     if trange=='All':
         cake=np.nanmean(dat,0)
     else:
-        cake=np.nanmean(dat[trange,:,:],0)
+        cake=np.nanmean(dat[trange,:,:],0).squeeze()
     data=cake
                         
     phis=phis[:-1] #hdf5 has one more phi point than slices (they are bin edges)

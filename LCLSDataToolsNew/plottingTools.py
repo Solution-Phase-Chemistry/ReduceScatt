@@ -140,6 +140,51 @@ def plot_2d(t,x,ys,fig=None,sub='111',cb=True,logscan=False,ccmap='rainbow'):
     #median above and below 0 * some number
     
     plt.clim([np.nanmin(ys),np.nanmax(ys)/1.5])
+    #plt.clim(np.nanpercentile(ys, 1), np.nanpercentile(ys,99))
+    #plt.clim(-4.5e-4, 4.5e-4)
+#     plt.clim([np.nanmean(ys)-1.5*np.std(ys),np.nanmax(ys)+1.5*np.std(ys)])
+
+    
+    if cb:
+        cbar=plt.colorbar()
+        cbar.formatter.set_powerlimits((0, 0))
+        cbar.update_ticks()
+    plt.xlabel('t (s)')
+    plt.ylabel('Q ($\AA^{-1}$)')
+    plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))        
+        
+
+def plot_2d_v2(ys,t=None,q=None,fig=None,sub='111',cb=True,logscan=False,ccmap='rainbow'):
+    '''plot ys[N,M] on time [M] vs q [N] axes; don't need t and q vectors if you don't want them
+    cb=True: add colorbar'''
+
+    if fig is None:
+        plt.figure()
+    else:
+        plt.figure(fig)
+        if not isinstance(sub, (str,int)):
+            plt.subplot(*sub)
+        else:
+            plt.subplot(int(sub))
+    
+    if t is None:
+        t=np.arange(0,ys.shape[1])
+    if q is None:
+        q=np.arange(0,ys.shape[0])
+        
+    if logscan: 
+        my_xticks = np.unique(t)
+        t=np.arange(len(t))
+        my_xticks=['%.4G'%n for n in my_xticks] #make them readable
+        plt.xticks(t, my_xticks,rotation=45)
+    ts,qs=np.meshgrid(t,q)
+    try:
+        plt.pcolormesh(ts,qs,ys,cmap=ccmap,shading='auto')
+    except:
+        plt.pcolormesh(ts,qs,ys.T,cmap=ccmap,shading='auto')
+    #median above and below 0 * some number
+    
+    plt.clim([np.nanmin(ys),np.nanmax(ys)/1.5])
 #     plt.clim([np.nanmean(ys)-1.5*np.std(ys),np.nanmax(ys)+1.5*np.std(ys)])
 
     
@@ -151,7 +196,15 @@ def plot_2d(t,x,ys,fig=None,sub='111',cb=True,logscan=False,ccmap='rainbow'):
     plt.ylabel('Q ($\AA^{-1}$)')
     plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
     
-    
+ 
+
+
+
+
+
+
+
+
 def plot_timetrace(times,spectrum,Es,E,n_mean=3,n_bin=0,binByPoints=True, binByAxis=False,showplot=True):
     '''Plot a time trace of an energy slice of a spectrum. For a 2d 'spectrum' at times 'times', select the values closest to energy 'E' out of energy axis 'Es'. Average the 'n_mean' points on either side and time-bin according to 'n_bin' and 'binByPoints' (see  BinnedMean). Plot times vs means and return them.'''
     idx = (np.abs(Es[:]-E)).argmin()
