@@ -214,7 +214,7 @@ def IscatFilters(paramDict,outDict):
         plt.subplot(2,2,2)
         if paramDict['corr_filter']:
             plt.scatter(ipm1[out_mask],Isum1[out_mask],marker='.',color='grey',alpha=.2)
-            plt.scatter(ipm1[in_mask],Isum1[in_mask],marker='.',color='black',alpha=.2)
+            plt.scatter(ipm1[in_mask],Isum1[in_mask],marker='.',color='blue',alpha=.2)
             plt.plot(ipm1[in_mask],line_y,color='r')
         else:
             nanfilt=~np.isnan(Iscat)&~np.isnan(ipmi)
