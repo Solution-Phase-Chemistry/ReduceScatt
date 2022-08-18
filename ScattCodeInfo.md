@@ -256,6 +256,7 @@ paramDict= {
 	fig=None, sub=None, logscan=False)
 	def Ldiv(a,b,info=False)
 
-
-
+## Bin2DFns.py
+	def Bin2D(paramDict,outDict)
+	def ReduceData2D(inDir,exper,runs,outDir,paramDict,varDict)
 
