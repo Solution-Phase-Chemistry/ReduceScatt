@@ -1,6 +1,7 @@
 # Scattering Code Information
 # paramDict Reference:
-paramDict= {
+	paramDict= {
+
         'binSetup'  : 'points', #'fixed' or 'unique' or 'points' or 'nbins' = (set bins; bin by unique axis values; points per bin; number of bins)
         'binSet2'   : 300, # integer points per bin for 'points' or list of bin edges for 'fixed' or integer number of bins for 'nbins'
         'binMethod' : 'ave', ## 'ave' or 'sum' ? 
