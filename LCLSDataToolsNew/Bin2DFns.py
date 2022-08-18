@@ -22,7 +22,7 @@ from LCLSDataToolsNew.SVDTools import *
 
 from LCLSDataToolsNew.SetUpFns import *
 from LCLSDataToolsNew.DiffBinFns import *
-# from LCLSDataToolsNew.ReduceFns import *
+from LCLSDataToolsNew.ReduceFns import *
 
 def Bin2D(paramDict,outDict):
     ''' sets up time axis as dictated by binSetup and binSet2, sets up unique other scan axis.
@@ -32,11 +32,11 @@ def Bin2D(paramDict,outDict):
     onData=outDict['diff_Data']
     scan2=outDict['h5Dict']['scan_vec2']
     f_intens=outDict['filters']['f_good']
-    f_loff=outDict['filters']['f_loff']
+    f_lon=outDict['filters']['f_lon']
     binSet=paramDict['binSetup']
     binSet2=paramDict['binSet2']
     
-    x2Data=scan2[f_intens & f_loff]
+    x2Data=scan2[f_intens & f_lon]
     
     
           
@@ -75,6 +75,8 @@ def Bin2D(paramDict,outDict):
     ######### bin ##########
     diff_bin=np.full((x1centres.shape[0],x2centres.shape[0],
                       onData.shape[1],onData.shape[2]),np.nan)
+    
+    
     for ii in range(onData.shape[1]):
         temp_in=onData[:,ii,:].T
         temp_out=binned_statistic_dd([x1Data, x2Data], temp_in, 
@@ -82,7 +84,7 @@ def Bin2D(paramDict,outDict):
                                      expand_binnumbers=True)
         diff_bin[:,:,ii,:]=temp_out[0].transpose(1,2,0)
     outDict.update({'x1centres':x1centres,'x2centres':x2centres,'diff_bin':diff_bin})
-    
+    print(outDict.keys())
     
     
     
@@ -100,7 +102,7 @@ def ReduceData2D(inDir,exper,runs,outDir,paramDict,varDict):
         then=time.time()
         LoadH5(fname,varDict,paramDict, outDict)
         setupFilters(paramDict,outDict)
-        IscatFilters(paramDict,outDict)
+        I0Filters(paramDict,outDict)
         # eBeamFilter(paramDict,outDict)
         if paramDict['use_TT']==True or paramDict['use_TT']=='filter':
             TTfilter(paramDict,outDict)
