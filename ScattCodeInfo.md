@@ -1,8 +1,8 @@
 # Scattering Code Information
 # paramDict Reference:
 paramDict= {
-        'binSetup'  : 'points', #set bins; bin by unique axis values; or by points = 'fixed', 'unique', 'points'
-        'binSet2'   : 300, # integer points per bin for 'points' or list of bin centers for 'fixed'
+        'binSetup'  : 'points', #'fixed' OR 'unique' OR 'points' OR 'nbins' = (set bins; bin by unique axis values; points per bin; number of bins)
+        'binSet2'   : 300, # integer points per bin for 'points' or list of bin edges for 'fixed' or integer number of bins for 'nbins'
         'binMethod' : 'ave', ## 'ave' or 'sum' ? 
         
         'qnorm'     : (3,4), ## low,high or None (None=use Iscat)
