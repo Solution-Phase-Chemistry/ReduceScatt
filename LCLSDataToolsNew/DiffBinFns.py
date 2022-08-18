@@ -1,3 +1,6 @@
+### by Sumana Raj ###
+
+
 import numpy as np
 from matplotlib import pyplot as plt
 import matplotlib as mpl
@@ -379,6 +382,7 @@ def doTimeBinning(paramDict,outDict):
     #inputs
     xstat=paramDict['xstat']
     qerr=paramDict['useAzav_std']
+    
     xData=outDict['x_Data']
     onData=outDict['diff_Data']
     
@@ -396,6 +400,12 @@ def doTimeBinning(paramDict,outDict):
         pts_per_bin=paramDict['binSet2']
         print('bin by points, %i per bin'%pts_per_bin)
         bin_outfile=BinStat(xData,onData,yerr=yerr,n=pts_per_bin,binByPoints=True,
+                 showplot=False,set_bins=None,count=True, xstat=xstat)
+        
+    elif paramDict['binSetup']=='nbins':
+        nbins=paramDict['binSet2']
+        print('bin by points, %i per bin'%pts_per_bin)
+        bin_outfile=BinStat(xData,onData,yerr=yerr,n=nbins,binByPoints=False,
                  showplot=False,set_bins=None,count=True, xstat=xstat)
         
     elif paramDict['binSetup']=='fixed':
@@ -435,3 +445,14 @@ def doTimeBinning(paramDict,outDict):
         outDict['diff_azav_std']=qerr_temp
     
     print('binning - done!')
+    
+    
+    
+    
+
+    
+    
+    
+    
+    
+    

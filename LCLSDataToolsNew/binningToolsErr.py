@@ -1,3 +1,5 @@
+### by Kathryn Ledbetter, Sumana Raj, Natalia Powers-Riggs ###
+
 import numpy as np
 from matplotlib import pyplot as plt
 from scipy.stats import binned_statistic
