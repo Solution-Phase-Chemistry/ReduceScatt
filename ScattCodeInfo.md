@@ -4,7 +4,7 @@
 
         'binSetup'  : 'points', #'fixed' or 'unique' or 'points' or 'nbins' = (set bins; bin by unique axis values; points per bin; number of bins)
         'binSet2'   : 300, # integer points per bin for 'points' or list of bin edges for 'fixed' or integer number of bins for 'nbins'
-        'binMethod' : 'ave', ## 'ave' or 'sum' ? 
+        'binMethod' : 'ave', ## 'ave' or 'sum' ?  ### this isn't actually implemented yet. 
         
         'qnorm'     : (3,4), ## low,high or None (None=use Iscat)
         'qrange'    : (.5,4.5), ## for plots
