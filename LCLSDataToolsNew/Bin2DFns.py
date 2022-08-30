@@ -102,7 +102,7 @@ def ReduceData2D(inDir,exper,runs,outDir,paramDict,varDict):
         then=time.time()
         LoadH5(fname,varDict,paramDict, outDict)
         setupFilters(paramDict,outDict)
-        I0Filters(paramDict,outDict)
+        IscatFilters(paramDict,outDict)
         # eBeamFilter(paramDict,outDict)
         if paramDict['use_TT']==True or paramDict['use_TT']=='filter':
             TTfilter(paramDict,outDict)
