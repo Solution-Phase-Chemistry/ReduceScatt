@@ -234,9 +234,11 @@
 
 ## ReduceFns.py
 	def doAnisotropy (paramDict, outDict)
+	def doSVDBackSub(paramDict,outDict,earlytrange=(-.5e-12, 0)
 	def saveDictionary(outpath,paramDict,outDict)
 	def ReduceData (inDir, exper, runs, outDir, paramDict, varDict)
 	def StackProccessed(inpath,exper,runs,method='bincount')
+	
 
 ## SetUpFns.py
 	def LoadH5(fname, varDict, paramDict, outDict)
