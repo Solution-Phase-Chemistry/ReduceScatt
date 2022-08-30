@@ -42,6 +42,59 @@ def doAnisotropy(paramDict,outDict):
         
 
         
+        
+        
+        
+        
+        
+def doSVDBackSub(paramDict,outDict,earlytrange=(-.5e-12, 0)):
+    ##### do SVD back (t<0) subtraction #######    
+    ts=outDict['xcenter']
+    qrange=paramDict['qrange']
+    diff_temp=outDict['diff_bin']
+    
+    goodq = np.where((qs > qrange[0]) & (qs < qrange[1]))[0]
+    earlyt = np.where((ts > earlytrange[0]) & (ts < earlytrange[1]))[0]  
+    data2d = np.nanmean(diff_temp,1)
+    data2dgq = data2d[:, goodq]
+    
+    spectra, singVal, timetrace = do_svd(qs[goodq], ts[earlyt], data2dgq[earlyt,:], n = 10)
+
+    N = 1  #number of svd components to subtract
+    #weights = singVal[:N]
+    Spectra = spectra
+    #Data1 = data2dgq
+    timeWeight = np.nanmean(timetrace[:,0])
+    scale = np.zeros_like(Spectra[0])
+    for x in range(N):
+        timeWeight = np.nanmean(timetrace[:,x])
+        scale += singVal[x]*Spectra[x]*timeWeight
+    Bsub3d=diff_temp[:,:,goodq]-scale[None,None,:]  
+
+######## calculate mean and var at low q with and without subtraction #########
+#     #lowQRange=(.6,3)
+#     lowQs1=np.where((qs > 0.6) & (qs < 3)[0])
+#     lowQs2 = np.where((qs[goodq] > 0.6) & (qs[goodq] < 3)[0])
+
+#     data2dlowQ = data2d[:, lowQs1].squeeze()
+#     originalMean = np.nanmean(data2dlowQ[earlyt, :], (0,1))
+#     originalVar = np.var(data2dlowQ[earlyt, :],(0,1))
+
+#     BsublowQ = np.nanmean(Bsub3d[:,:, lowQs2],1).squeeze()
+#     BsubMean = np.nanmean(BsublowQ[earlyt, :], (0,1))
+#     BsubVar = np.var(BsublowQ[earlyt, :],(0,1))
+
+#     print('Run',basename)
+#     print("Uncorrected t<0, q=(0.6,3) mean: %0.3e var: %0.3e" %(originalMean, originalVar))
+#     print("Corrected  t<0, q=(0.6,3) mean: %0.3e var: %0.3e" %(BsubMean,BsubVar))                  
+
+    diff_temp[:,:,goodq] = Bsub3d
+    outDict['diff_bin']=diff_temp
+        
+        
+        
+        
+        
 
     
     
