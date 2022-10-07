@@ -1,4 +1,4 @@
-# ReduceDatav2
+# ReduceScat (formerly ReduceDatav2)
 Reduce scattering data broken up into smaller functions
 
 ## There are three main dictionaries to run the code:  
