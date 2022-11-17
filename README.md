@@ -14,7 +14,7 @@ outDict:  see ScattCodeInfo.md files for what parameters may be saved in this di
 Master_XSS: reduction and useful jupyter notebook cells for fitting data and stacking \
 XSS_noScanVar: example of how to reduce data with no scan variable
 
-### older notebooks
+### old notebooks 
 ScatteringSteps.ipynb shows the individual subfunctions used to process the data \
 ScatteringTest.ipynb tests the ReduceData function that calls the individual subfunctions in sequence. 
 
