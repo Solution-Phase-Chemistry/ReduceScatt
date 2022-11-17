@@ -1,5 +1,5 @@
 # ReduceScatt (formerly ReduceDatav2)
-Reduce scattering data broken up into smaller functions
+Filter and time bin the azimuthally averaged X-ray scattering smalldata from LCLS.  
 
 ## There are three main dictionaries to run the code:  
 ### Input dictionaries:
