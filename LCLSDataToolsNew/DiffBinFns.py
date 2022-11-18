@@ -37,7 +37,8 @@ def MakeScanAx(paramDict,outDict,tt_corrNew=None):
     scanvec=outDict['h5Dict']['scan_vec']
     lxt=outDict['h5Dict']['lxt']
     enc=outDict['h5Dict']['encoder']
-    ttCorr=outDict['h5Dict']['ttCorr']
+    if use_tt:
+        ttCorr=outDict['h5Dict']['ttCorr']
     
     
     
@@ -65,9 +66,12 @@ def MakeScanAx(paramDict,outDict,tt_corrNew=None):
             else: #want to use the timetool
                 if tt_corrNew is not None:
                     ttCorr=tt_corrNew[0]*outDict['h5Dict']['ttFLTPOS']+tt_corrNew[1]
-
-                x=t0_corr+(enc+ttCorr)*1e-12
-                print('t=(encoder + tt/ttCorr)*1e-12')
+                try:
+                    x=t0_corr+lxt+(enc+ttCorr)*1e-12
+                    print('t=lxt+(encoder + tt/ttCorr)*1e-12')
+                except:
+                    x=t0_corr+(enc+ttCorr)*1e-12
+                    print('t=(encoder + tt/ttCorr)*1e-12')
                     
                     
         else: #any other scanvar besides time: just take the values from the array
