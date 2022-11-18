@@ -121,9 +121,10 @@ def saveDictionary(outpath,paramDict,outDict):
     
     
     
-def ReduceData(inDir,exper,runs,outDir,paramDict,varDict):
+def ReduceData(inDir,exper,runs,outDir,paramDict1,varDict):
     for run in runs:
         fname=inDir+exper+'_Run%04i.h5'%run
+        paramDict=paramDict1.copy()
         print('loading ', fname)
         outDict={}
         then=time.time()
