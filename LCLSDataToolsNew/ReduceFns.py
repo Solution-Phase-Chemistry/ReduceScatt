@@ -116,6 +116,7 @@ def saveDictionary(outpath,paramDict,outDict):
     fout=outpath+outDict['h5name']+'_out.npy'
     np.save(fout,outDict)
     print('saved output to ', fout)
+    print('%i/%i events used'%(outDict['numshots_used'],outDict['numshots']))
     
     
     
