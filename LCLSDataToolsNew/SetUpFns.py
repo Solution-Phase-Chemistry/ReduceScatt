@@ -29,7 +29,10 @@ def LoadH5(fname,varDict,paramDict,outDict):
     h5Dict={}
     with h5py.File(fname,'r') as d:
         for key in varDict:
-            h5Dict[key]=d[varDict[key]][:]
+            try:
+                h5Dict[key]=d[varDict[key]][:]
+            except:
+                print('key not found '+ key)
         if paramDict['scan_var'] is None:
             try:
                 if np.unique(h5Dict['scan_vec']).size > 1:
