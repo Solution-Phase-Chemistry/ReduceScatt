@@ -19,8 +19,9 @@
        
         'ipm'    : 4, # select ipm to use
         'corr_filter' : True, #whether to filter based on Iscat/ipm correlation
-        'ipm_filter' : (10,None), # if corr_filter, can set limits for ipm intensity
-        'Iscat_threshold'  : 50, #reject values less than this for Iscat (aka Isum)
+        'corr_threshold': 50 , #threshold for correlation filter
+        'ipm_filter' : (10000,None), #set limits for ipm intensity
+        'Iscat_threshold'  : 100, #lower limit for Iscat
         'use_TT'   :   True,  #options are True, False, and 'filter'  ('filter is for filter only) 
         't0_corr' : None,  #false or float offset for time zero
         
@@ -34,13 +35,12 @@
         'xstat' : True, #calculate mean and std for x axis during binning step
  
 
-	   show_svd=False : Whether to display and save an extra graph with SVD of total, S0, and S2. 
-    svd_n=4 : how many singular values to plot
-
-    smooth=None : amount to smooth the data before SVD analysis. [q,t] where q and t are odd and represent width of bin for median filter.
-
+  	'show_svd' : False #Whether to display and save an extra graph with SVD of total, S0, and S2. 
+    	'svd_n : 4,  #how many singular values to plot
+	'smooth' : None, #amount to smooth the data before SVD analysis. [q,t] where q and t are odd and represent width of bin for median filter.
+	'slice_plot' : None, # the q indices to mean and plot against the x variable in a 1d plot
     
-    slice_plot=None : the q indices to mean and plot against the x variable in a 1d plot
+    	'overwrite' : True, # overwrite .npy files? 
 
     
         }
