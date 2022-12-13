@@ -101,12 +101,15 @@ def doSVDBackSub(paramDict,outDict,earlytrange=(-.5e-12, 0)):
 def saveDictionary(outpath,paramDict,outDict):
     '''delete h5Dict from outDict, save outDict to .npy file in directory=outpath
     '''
+    overwrite=paramDict['overwrite']
+    
     
     #add things we want
     outDict['qs']=outDict['h5Dict']['qs']
     outDict['phis']=outDict['h5Dict']['phis']
     outDict['paramDict']=paramDict
     outDict['numshots_used']=outDict['x_Data'].shape[0]
+    
     
     #delete things we don't want to save
     removeL=['h5Dict','x_Data', 'diff_Data','xs','Iscat']
@@ -115,7 +118,7 @@ def saveDictionary(outpath,paramDict,outDict):
     
     fout=outpath+outDict['h5name']+'_out.npy'
     np.save(fout,outDict)
-    print('saved output to ', fout)
+    print('saved output to',fout)
     print('%i/%i events used'%(outDict['numshots_used'],outDict['numshots']))
     
     
@@ -129,7 +132,7 @@ def ReduceData(inDir,exper,runs,outDir,paramDict1,varDict):
         print('loading ', fname)
         outDict={}
         then=time.time()
-        LoadH5(fname,varDict,paramDict, outDict)
+        LoadH5(fname,outDir,varDict,paramDict, outDict)
         setupFilters(paramDict,outDict)
         IscatFilters(paramDict,outDict)
         # eBeamFilter(paramDict,outDict)
@@ -137,7 +140,7 @@ def ReduceData(inDir,exper,runs,outDir,paramDict1,varDict):
             TTfilter(paramDict,outDict)
         now = time.time() #Time after it finished
         print(now-then, " seconds")
-        saveReduction(outDir,outDict)
+        saveReduction(outDir,paramDict,outDict)
         
         MakeScanAx(paramDict,outDict,tt_corrNew=None)
         DarkSubtract(paramDict,outDict)
@@ -269,6 +272,7 @@ def overviewPlot(figdir,paramDict,outDict):
     slice_plot=paramDict['slice_plot']
     smooth=paramDict['smooth']
     
+    
     if qrange is None:
         qroi=np.arange(len(qs))
     else:
@@ -281,6 +285,7 @@ def overviewPlot(figdir,paramDict,outDict):
         cake=cake/outDict['iso_corr']
     
     resfig=plt.figure('res')#results figure
+    resfig.suptitle('%s, scanning %s, %i/%i events' %(basename,scanvar,numshots_used,numshots))
     if aniso: #how many rows of plots will we need?
         nplot=4
     else:
@@ -413,9 +418,10 @@ def overviewPlot(figdir,paramDict,outDict):
     
     #### make figures look acceptable and save them ####
     plt.figure('res')
+    plt.suptitle('%s, scanning %s, %i/%i events' %(basename,scanvar,numshots_used,numshots))
     plt.tight_layout()
     plt.subplots_adjust(top=0.95)
-    plt.savefig(figdir+basename+'_result.png')
+    plt.savefig(figdir+basename+'_result.png')   
 
 
     if show_svd:
@@ -424,6 +430,7 @@ def overviewPlot(figdir,paramDict,outDict):
         plt.subplots_adjust(top=0.95)
         svdfig.suptitle('SVD of %s, scanning %s, %i/%i events' %(basename,scanvar,numshots_used,numshots))
         plt.savefig('%s%s_SVD.png'%(figdir,basename))
+        
     now = time.time() #Time after it finished
     print('done')
         

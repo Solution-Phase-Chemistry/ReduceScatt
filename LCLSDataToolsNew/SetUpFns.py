@@ -21,10 +21,20 @@ from sklearn.linear_model import LinearRegression as LR
 
 ''' Set up functions and filters '''
 
-def LoadH5(fname,varDict,paramDict,outDict):
+def LoadH5(fname,outpath,varDict,paramDict,outDict):
     ''' load values designated in varDict from H5 file with name fname
     save data to outDict'''
+    overwrite=paramDict['overwrite']
+    
     basename=fname.split('/')[-1].split('.')[0]
+    
+    if not overwrite and os.path.isfile(outpath+'npy/'+basename+'_out.npy'):
+        nn=0
+        while os.path.isfile(outpath+'npy/'+basename+'_out.npy'):
+            nn+=1
+            basename=basename+'_%02i' %nn
+    
+    print('basename is ', basename)
     outDict['h5name']=basename
     h5Dict={}
     with h5py.File(fname,'r') as d:
@@ -42,7 +52,8 @@ def LoadH5(fname,varDict,paramDict,outDict):
                 else:
                     paramDict['scan_var']='newdelay'
 
-            except:               
+            except:
+                h5Dict['scan_vec']=h5Dict['encoder']
                 paramDict['scan_var']='newdelay'
             
     print('scan variable is ', paramDict['scan_var'])
@@ -149,30 +160,44 @@ def IscatFilters(paramDict,outDict):
     Iscat=outDict['Iscat']
     f_xon=outDict['filters']['f_xon']
     Iscat_thresh=paramDict['Iscat_threshold']
+    ipm_thresh=paramDict['ipm_filter']
+    
     
         ##create filter on xray intensity keeping 80% of shots
     l,r,frac,f_Iscat=slice_histogram(Iscat,f_xon&(Iscat>Iscat_thresh),0.80, 
-                                      showplot=paramDict['show_filters'], fig='red', sub=221)
+                                      showplot=paramDict['show_filters'], fig='red', field='Iscat',sub=221)
     outDict['filters']['f_Iscat']=f_Iscat
     outDict['filters']['f_good']=f_Iscat&f_xon ##formerly known as f_intens
     
+    
     ipmkey='ipm'+str(paramDict['ipm'])
     ipmi=outDict['h5Dict'][ipmkey]
+    
+    ### ipm_thresholds
+    if paramDict['ipm_filter'][0] != None:
+        f_Ipm=(ipmi>ipm_thresh[0])
+    if paramDict['ipm_filter'][1] != None:
+        f_Ipm=f_Ipm & (ipmi<ipm_thresh[1])  
+    outDict['filters']['f_Ipm']=f_Ipm
+    outDict['filters']['f_good']=outDict['filters']['f_good'] & f_Ipm
+    
     if paramDict['corr_filter']:
         print('making correlation filter')
+        
+        thresh=paramDict['corr_threshold']
         
         ##set ipm thresholds
         # ipmkey='ipm'+str(paramDict['ipm'])
         # ipmi=outDict['h5Dict'][ipmkey]
         ipmfilt=np.full_like(ipmi,1)
         if paramDict['ipm_filter'][0] != None:
-            ipmfilt=np.logical_and((ipmfilt),(ipmi>paramDict['ipm_filter'][0]))
+            ipmfilt=np.logical_and((ipmfilt),(ipmi>ipm_thresh[0]))
         if paramDict['ipm_filter'][1] != None:
-            ipmfilt=np.logical_and((ipmfilt),(ipmi<paramDict['ipm_filter'][1]))
+            ipmfilt=np.logical_and((ipmfilt),(ipmi<ipm_thresh[1]))
         
     
         ## correlation filter of ipm vs Isum
-        thresh=10
+        # thresh=30
         
         #RANSAC fit to line
         nanfilt=~np.isnan(Iscat)&~np.isnan(ipmi)&(ipmfilt)&(Iscat>Iscat_thresh)
@@ -186,7 +211,7 @@ def IscatFilters(paramDict,outDict):
         for i in trialsRSC:
             #fit_intercept=False: y=mx
             reg=RSC(base_estimator=LR(fit_intercept=True), 
-                    residual_threshold=thresh,max_trials=10000,is_data_valid=None).fit(ipm1,Isum1)
+                    residual_threshold=RSCthresh,max_trials=10000,is_data_valid=None).fit(ipm1,Isum1)
 
             outRSC[i,0]=reg.estimator_.coef_[0] #slope
             outRSC[i,1]=reg.estimator_.intercept_ #intercept 
@@ -223,9 +248,14 @@ def IscatFilters(paramDict,outDict):
             nanfilt=~np.isnan(Iscat)&~np.isnan(ipmi)
             plt.hist2d(ipmi[nanfilt],Iscat[nanfilt],100,cmap='Greys',
                        norm=mpl.colors.SymLogNorm(linthresh=1, linscale=1))
-            plt.xlabel(ipmkey)
-            plt.ylabel('Iscat')
-            plt.title('log of hist of shots')
+            
+        if paramDict['ipm_filter'][0] != None:
+            plt.axvline(ipm_thresh[0],ls='--',color='r')
+        if paramDict['ipm_filter'][1] != None:
+            plt.axvline(ipm_thresh[1],ls='--',color='r')
+        plt.xlabel(ipmkey)
+        plt.ylabel('Iscat')
+        plt.title('log of hist of shots')
 
             
             
@@ -291,16 +321,16 @@ def TTfilter(paramDict,outDict):
     
     
 
-    ##filter based on TT position
+    ##filter based on TT fwhm
     l,r,frac,f_ttfwhm=slice_histogram(ttfwhm,
                                       f_lon&f_good&(ttfwhm>10)&(ttfwhm<300),
-                                      0.99,showplot=showfilt,fig='red',sub=223)
+                                      0.99,showplot=showfilt,fig='red',field='TTfwhm',sub=223)
     print('TTFWHM: fraction_kept ',frac,' lower ', l,' upper ',r)
 
-    ## filter based on TT FWHM
+    ## filter based on TT position
     l,r,frac,f_ttpos=slice_histogram(ttpos,
                                       (f_good&f_ttamp&(ttpos>10)),
-                                      0.99,showplot=showfilt,fig='red',sub=224)
+                                      0.99,showplot=showfilt,field='TTpos',fig='red',sub=224)
     print('TTPOS: fraction_kept ',frac,' lower ', l,' upper ',r)
 
     ## save
@@ -310,9 +340,11 @@ def TTfilter(paramDict,outDict):
 
 
 
-def saveReduction(outDir,outDict):
+def saveReduction(outDir,paramDict,outDict):
     basename=outDict['h5name']
+    
     plt.figure('red')
+    plt.suptitle(basename)
     figdir = outDir + 'figures/'
     plt.tight_layout()
     plt.subplots_adjust(top=0.95)
