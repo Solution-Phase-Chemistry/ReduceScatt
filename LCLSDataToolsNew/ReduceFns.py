@@ -121,6 +121,22 @@ def saveDictionary(outpath,paramDict,outDict):
     print('saved output to',fout)
     print('%i/%i events used'%(outDict['numshots_used'],outDict['numshots']))
     
+        
+    if savemat:
+        fmat=outpath+outDict['h5name']+'_out.mat'
+        
+        ## remove sub-dictionaries because .mat doesn't like them
+        outDict2=outDict
+        removeL2=[]
+        for key in outDict2.keys():
+            if type(outDict2[key])==dict:
+                removeL2.append(key)
+        for key in removeL2:
+            outDict2.pop(key,None)
+        
+        scio.savemat(fmat,outDict2)
+        print('saved .mat output')
+    
     
     
     
