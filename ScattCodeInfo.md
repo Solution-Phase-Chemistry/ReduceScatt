@@ -41,7 +41,7 @@
 	'slice_plot' : None, # the q indices to mean and plot against the x variable in a 1d plot
     
     	'overwrite' : True, # overwrite .npy files? If False then will increment file base name by 1 each time a new file is saved for the same run
-	'save_mat' : False,  # save a .mat file output
+        'save_mat' : False,  # save a .mat file output
     
         }
 
