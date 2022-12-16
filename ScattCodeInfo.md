@@ -53,7 +53,7 @@
     numshots
     h5Dict  #don't save in npy
         #load based on variable dictionary
-    filters
+    filters # not saved in .mat
         f_lon
         f_loff
         f_xon
@@ -62,6 +62,7 @@
         f_lgood
         f_allTT
         f_Iscat
+	f_Ipm
         f_laser
         f_corr
         f_eBeam
@@ -87,7 +88,7 @@
     qs
     phis
     numshots_used
-    paramDict
+    paramDict #not saved in .mat
 
 # variable dictionary reference
 	varDict = {
