@@ -210,7 +210,7 @@ def IscatFilters(paramDict,outDict):
         outRSC=np.full((trialN,2),np.nan)
         for i in trialsRSC:
             #fit_intercept=False: y=mx
-            reg=RSC(base_estimator=LR(fit_intercept=True), 
+            reg=RSC(estimator=LR(fit_intercept=True), 
                     residual_threshold=RSCthresh,max_trials=10000,is_data_valid=None).fit(ipm1,Isum1)
 
             outRSC[i,0]=reg.estimator_.coef_[0] #slope
