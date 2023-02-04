@@ -18,6 +18,7 @@ from LCLSDataToolsNew.plottingTools import *
 from LCLSDataToolsNew.binningToolsErr import *
 from LCLSDataToolsNew.anisotropyToolsAll import *
 from LCLSDataToolsNew.SVDTools import *
+from LCLSDataToolsNew.nonLinCorrTools import *
 
 from sklearn.linear_model import RANSACRegressor as RSC
 from sklearn.linear_model import LinearRegression as LR
@@ -179,7 +180,7 @@ def DetectorNonlinCorr(paramDict,outDict):
         offshot = cspad_azav[off_xray, :, :]
 
         xVals, yvals = BinnedMeanCake(Isum[off_xray],offshot,100)
-        CorrArray = np.full_like(azav_temp, np.nan)
+        CorrArray = np.full_like(cspad_azav, np.nan)
 #             params = []
         for phibin in range(len(phis)-1): 
             dmat = yvals[:,phibin,:]
