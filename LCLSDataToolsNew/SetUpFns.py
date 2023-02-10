@@ -28,14 +28,14 @@ def LoadH5(fname,outpath,varDict,paramDict,outDict):
     
     basename=fname.split('/')[-1].split('.')[0]
     
+    basename1=basename
     if not overwrite and os.path.isfile(outpath+'npy/'+basename+'_out.npy'):
         nn=0
-        while os.path.isfile(outpath+'npy/'+basename+'_out.npy'):
+        while os.path.isfile(outpath+'npy/'+basename1+'_out.npy'):
             nn+=1
-            basename=basename+'_%02i' %nn
-    
-    print('basename is ', basename)
-    outDict['h5name']=basename
+            basename1=basename+'_%02i' %nn
+    print('basename is ', basename1)
+    outDict['h5name']=basename1
     h5Dict={}
     with h5py.File(fname,'r') as d:
         for key in varDict:
