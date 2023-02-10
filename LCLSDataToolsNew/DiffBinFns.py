@@ -64,7 +64,7 @@ def MakeScanAx(paramDict,outDict,tt_corrNew=None):
                     except:
                         x=t0_corr+enc*1e-12
                         print('lxt unavailabe, t = (encoder)*1e-12')
-            else: #want to use the timetool
+            elif use_tt=='withlxt':
                 if tt_corrNew is not None:
                     ttCorr=tt_corrNew[0]*outDict['h5Dict']['ttFLTPOS']+tt_corrNew[1]
                 try:
@@ -73,6 +73,13 @@ def MakeScanAx(paramDict,outDict,tt_corrNew=None):
                 except:
                     x=t0_corr+(enc+ttCorr)*1e-12
                     print('t=(encoder + tt/ttCorr)*1e-12')
+            
+            else: #want to use the timetool
+                if tt_corrNew is not None:
+                    ttCorr=tt_corrNew[0]*outDict['h5Dict']['ttFLTPOS']+tt_corrNew[1]
+                    
+                x=t0_corr+(enc+ttCorr)*1e-12
+                print('t=(encoder + tt/ttCorr)*1e-12')
                     
                     
         else: #any other scanvar besides time: just take the values from the array
