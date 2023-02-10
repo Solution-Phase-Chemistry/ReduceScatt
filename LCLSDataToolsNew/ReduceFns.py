@@ -152,7 +152,7 @@ def ReduceData(inDir,exper,runs,outDir,paramDict1,varDict):
         setupFilters(paramDict,outDict)
         IscatFilters(paramDict,outDict)
         # eBeamFilter(paramDict,outDict)
-        if paramDict['use_TT']==True or paramDict['use_TT']=='filter':
+        if paramDict['use_TT'] is not False:
             TTfilter(paramDict,outDict)
         now = time.time() #Time after it finished
         print(now-then, " seconds")
@@ -240,10 +240,10 @@ def StackProccessed(inpath,exper,runs,method='bincount'):
     
     ##  weigh each run by number of shots per bin and sum, then divide by total shots in bin
     if method=='bincount':
-        AllD2=divAny(AllData,1/AllBC) ## multiply sig/shot and BC (shots/bin)
+        AllD2=divAny(AllData,1/AllBC,axis=(2,3,0,1)) ## multiply sig/shot and BC (shots/bin)
         sumD=np.nansum(AllD2,axis=0) ##total signal for each bin
         sumBC=np.nansum(AllBC,axis=0) ##total shots per bin
-        aveD=divAny(sumD,sumBC) #average signal per shot per bin
+        aveD=divAny(sumD,sumBC,axis=(1,2,0)) #average signal per shot per bin
         aveD[np.nonzero(sumBC==0),:,:]=np.nan
         stackDict={'aveData':aveD,'sumBC':sumBC,'ts':ts,'qs':qs,'phis':phis,'runs':runs,'method':method}
         return stackDict
