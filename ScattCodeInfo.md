@@ -22,7 +22,7 @@
         'corr_threshold': 50 , #threshold for correlation filter
         'ipm_filter' : (10000,None), #set limits for ipm intensity
         'Iscat_threshold'  : 100, #lower limit for Iscat
-        'use_TT'   :   True,  #options are True, False, and 'filter'  ('filter is for filter only) 
+        'use_TT'   :   True,  #options are True, False, 'filter'  ('filter is for filter only) or 'withlxt' (time delay=lxt+encoder+ttcorrection)
         't0_corr' : None,  #false or float offset for time zero
         
         'enforce_iso' : False # enforce off shots isotropic
