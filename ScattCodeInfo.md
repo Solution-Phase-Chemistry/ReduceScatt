@@ -26,6 +26,7 @@
         't0_corr' : None,  #false or float offset for time zero
         
         'enforce_iso' : False # enforce off shots isotropic
+	'energy_corr' : True, # ebeam photon energy correction (True or False)
         'NonLin_corr': None, #None, SVD, poly, or SVDbyBin
         'AdjSub'    : 50, #number of adjascent off shots to average and subtract, -1 subtracts all
         
