@@ -37,8 +37,8 @@ def divide_anyshape(lg,sm):
             out=lg/sm[:,np.newaxis,np.newaxis]
     return out
 
-def DifferenceSignal(dat,nor,f_good,f_lon,f_loff,n,offset=0,totaloff=1):
-    '''dat is signal to be differenced. 
+def DifferenceSignal(dat,f_good,f_lon,f_loff,n,offset=0,totaloff=1):
+    '''dat is normalized signal to be differenced. 
     nor is normalization factor (e.g. ipm2)
     f_good, f_on, f_off: filters for good x-ray shots, laser on and off shots
     returns difference signal for all good, laser on shots; filled with nan to be the same shape as other data fields 
@@ -48,14 +48,11 @@ def DifferenceSignal(dat,nor,f_good,f_lon,f_loff,n,offset=0,totaloff=1):
     n=int(n)
     if n%2==0: #only works for odd n; if even, just add one
         n+=1
-    dat=np.squeeze(dat[:])
-    nor=np.squeeze(nor[:])
-    diff=np.zeros(dat.shape)*np.nan #fill with nan. Points with a difference signal will get numbers. 
-    try:
-        norm_dat=divide_anyshape(dat[:],(nor[:]-offset)) #uses divide_anyshape in case norm and signal are differently shaped.
-    except:
-        norm_dat=dat/nor[:,:,None] #specific
+    norm_dat=np.squeeze(dat[:])
+    # nor=np.squeeze(nor[:])
+    diff=np.zeros(norm_dat.shape)*np.nan #fill with nan. Points with a difference signal will get numbers. 
     norm_off=norm_dat[f_good&f_loff]
+    
     if n<0:
 #         print('this one')
         #average all offs and subtract from all ons. 
@@ -91,26 +88,30 @@ def DifferenceSignal(dat,nor,f_good,f_lon,f_loff,n,offset=0,totaloff=1):
                     diff[drops[i]:]=(norm_dat[drops[i]:]-bkg)/totaloff     
     return diff
 
-def DifferenceError(dat,nor,derr,f_good,f_lon,f_loff,n,offset=0,totaloff=1):
-    '''dat is signal to be differenced. 
+
+
+
+
+def DifferenceError(dat,derr,f_good,f_lon,f_loff,n,offset=0,totaloff=1):
+    '''dat is normalized signal to be differenced. 
     nor is normalization factor (e.g. ipm2)
     derr=std for dat 
     f_good, f_on, f_off: filters for good x-ray shots, laser on and off shots
     returns error propagated standard deviation for difference signal for all good, laser on shots; filled with nan to be the same shape as other data fields 
     (for later binning)
     n is the number of off shots to average to subtract from ons. If n<0, average all offs. 
-    offset is calculated externally to account for nor=0 not corresponding to signal=0.'''
+    offset is calculated externally to account for nor=0 not corresponding to signal=0.
+    totaloff=scaling factor,  often totaloff=np.nanmax(np.nanmean(cake,0))=peak of laser off scattering signal. 
+    
+    '''
     n=int(n)
     if n%2==0: #only works for odd n; if even, just add one
         n+=1
     dat=np.squeeze(dat[:])
-    nor=np.squeeze(nor[:])
-    derr=np.squeeze(derr[:])
+    
+    norm_derr=np.squeeze(derr[:])
     diff_err=np.zeros(dat.shape)*np.nan #fill with nan. Points with a difference signal will get numbers. 
-    try:
-        norm_derr=divide_anyshape(derr[:],(nor[:]-offset)) #uses divide_anyshape in case norm and signal are differently shaped.
-    except:
-        norm_derr=derr/nor[:,:,None] #specific
+
     
     norm_off=norm_derr[f_good&f_loff]
     if n<0:

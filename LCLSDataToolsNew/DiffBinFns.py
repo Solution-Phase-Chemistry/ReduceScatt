@@ -64,6 +64,7 @@ def MakeScanAx(paramDict,outDict,tt_corrNew=None):
                     except:
                         x=t0_corr+enc*1e-12
                         print('lxt unavailabe, t = (encoder)*1e-12')
+                        
             elif use_tt=='withlxt':
                 if tt_corrNew is not None:
                     ttCorr=tt_corrNew[0]*outDict['h5Dict']['ttFLTPOS']+tt_corrNew[1]
@@ -110,11 +111,68 @@ def DarkSubtract(paramDict,outDict):
     print('x-ray off subtraction done!')
     
     
+
+    
+    
+def NormalFactor(paramDict,outDict):
+    ''' make normalization factor and save normalized cake'''
+    
+    print('normalize data')
+    
+    qnorm=paramDict['qnorm']
+    Isum=outDict['Iscat']
+    cspad_azav=outDict['h5Dict']['azav']
+    f_intens=outDict['filters']['f_good']
+    f_loff=outDict['filters']['f_loff']
+    qs=outDict['h5Dict']['qs']
+    
+    #### how to normalize: by the Isum, or by a section of the high Q range?
+    if qnorm is None:
+        normal_factor=Isum
+        normal_factor_e=normal_factor
+
+    else:
+        qlow=qnorm[0]
+        qhigh=qnorm[1]
+        # normal_factor=highq_normalization_factor(cspad_azav, qs, qlow,qhigh)
+        normal_factor=norm_factor_phis(cspad_azav, qs, qlow,qhigh)
+        
+        
+        
+    ####### save 300 off shots averaged as cake#####
+    early_x=np.where(f_intens&f_loff)[0][:300]
+    assert len(early_x)>1, "There are no valid laser-off shots; lightStatus/laser is %s"%str(d['lightStatus']['laser'][:20])
+#             print(f_lon)
+#             print(f_loff)
+    #early_x=(np.argsort(x)<300)&(f_intens&f_loff)
+    # cake=np.nanmean(cspad_azav[early_x,:,:]/normal_factor[early_x,None,None],0) #normalize by norm 
+    cake=np.nanmean(divAny(cspad_azav[early_x,:,:],normal_factor[early_x,:]),0) #normalize by norm
+    cake=divAny(cake,np.nanmax(cake,1))
+    
+    outDict['normal_factor']=normal_factor
+    outDict['loff_cake']=cake
+    
+    print('normalize data done!')
+    
+    ### apply normal_factor ###
+    
+    cspad_azav=divAny(cspad_azav,normal_factor)
+    outDict['h5Dict']['azav']=cspad_azav
+    print('normalization applied')
+    
+    if paramDict['useAzav_std']=='WAve':
+        outDict['h5Dict']['azav_std']=divAny(outDict['h5Dict']['azav_std'],normal_factor)    
+    
+    
+    
+    
+    
+    
     
     
     
 def EnergyCorr(paramDict,outDict):
-    '''apply photon energy correction using SVD'''
+    '''apply photon energy correction using SVD, use after normalization.'''
     
     print('applying energy correction')
     ebeam=outDict['h5Dict']['ebeam_hv']
@@ -124,52 +182,26 @@ def EnergyCorr(paramDict,outDict):
     azav_temp=outDict['h5Dict']['azav']
     Isum=outDict['Iscat']
     qs=outDict['h5Dict']['qs']
-    
-    #energ_corr is name of file with curve and params for fit to ebeam/photon_energy. corr=correction curve (q),params=params for polyfit
-    #energ_corr=np.load(energ_corr)
 
-
-
-#                 eData=d['ebeam/photon_energy'][f_xon&f_intens&f_loff&f_energ&~np.isnan(d['ebeam/photon_energy'])]
-    eData=ebeam[f_xon&f_intens&f_loff&~np.isnan(ebeam)]
-
-    onData=np.nanmean(azav_temp,1)/Isum[:,None]
-#                 onData=onData[f_xon&f_intens&f_loff&f_energ&~np.isnan(d['ebeam/photon_energy'])]
-    onData=onData[f_xon&f_intens&f_loff&~np.isnan(ebeam)]
-
-    eBin,eSignal=BinnedMean(eData,onData,50)#,binByPoints=False)
-    eSignal=eSignal.T
-    a,b,c=do_svd_protected(qs[10:-10],eBin,(eSignal-np.nanmedian(eSignal,0))[:,10:-10])
-    plt.suptitle('SVD of photon energy - mean')
-    Ecorr = np.full(qs.shape, np.nan)
-#                 NLcorr[10:-80]=a.T[:,0]*b[0]
-    Ecorr[10:-10]=a.T[:,0]*b[0]
-    Eparams=np.polyfit(eBin[1:-2],c[1:-2,0],2)
-
-
-
-    #assert energ_corr['corr'].shape==qs.shape #energy corr should be function of q
-    assert Ecorr.shape==qs.shape #energy corr should be function of q
-
-    #corr_factor=np.polyval(energ_corr['params'],d['ebeam/photon_energy'])#[f_intens])
-    corr_factor=np.polyval(Eparams,ebeam)#[f_intens])
-
-    #energ_corr_2d=energ_corr['corr']*corr_factor[:,None]*Isum[:,None] #now shape is (nshots,nq) and need to scale by Isum
-    energ_corr_2d=Ecorr*corr_factor[:,None]*Isum[:,None]
-    cspad_azav=azav_temp-energ_corr_2d[:,None,:]
+    energy_corr_2d=SVDcorrection(azav_temp,ebeam,qs,filt=(f_xon&f_intens&f_loff),n=1,binp=100,poly=2)
+ 
+    cspad_azav=azav_temp-energy_corr_2d
     
     outDict['h5Dict']['azav']=cspad_azav
 
     
 
+
     
-    
+
     
     
     
     
     
 def DetectorNonlinCorr(paramDict,outDict):
+    ''' use after normalization '''
+    
     NonLinCorr=paramDict['NonLin_corr']
     cspad_azav=outDict['h5Dict']['azav']
     qs=outDict['h5Dict']['qs']
@@ -202,64 +234,25 @@ def DetectorNonlinCorr(paramDict,outDict):
             CorrArray[:,phibin,nanfilt1] = even_newer
             print(phibin, 'done')
         cspad_azav=CorrArray
-#                 azav_temp=CorrArray
+
 
     elif NonLinCorr=='SVD':
 #             if NonLinCorr:
         print('do SVD nonlinear corrections')
-        #### SVD Nonlinear correction          
-        onData = np.nanmean(cspad_azav, 1)/Isum[:,None]
-        onData=onData[f_xon&f_intens&f_loff&~np.isnan(Isum)] #mean along phi
-        xData=Isum[f_xon&f_intens&f_loff&~np.isnan(Isum)]
-#                 print(onData.shape, xData.shape)
-        IIs,means=BinnedMean(xData,onData,100)#,binByPoints=False)
-        means=means.T
-        a,b,c=do_svd_protected(qs[10:-10],IIs,(means-np.nanmedian(means,0))[:,10:-10])
-        plt.suptitle('detector nonlinearity SVD')
-        NLcorr = np.full(qs.shape, np.nan)
-        NLcorr[10:-10]=a.T[:,0]*b[0]
-        NLparams=np.polyfit(IIs[1:-1],c[1:-1,0],2)          
-#                 NLcorr2 = np.full(qs.shape, np.nan)
-#                 NLcorr2[10:-10]=a.T[:,1]*b[1]
-#                 NLparams2=np.polyfit(IIs[1:-1],c[1:-1,1],4)          
-
-        assert NLcorr.shape==qs.shape #energy corr should be function of q
-        NLcorr_factor=np.polyval(NLparams,Isum)#[f_intens])
-#                 NLcorr_factor2=np.polyval(NLparams2,Isum)#[f_intens])
-
-        nonLin_corr_2d=NLcorr*NLcorr_factor[:,None]*Isum[:,None]
-        cspad_azav=cspad_azav-nonLin_corr_2d[:,None,:]
+        #### SVD Nonlinear correction   
+        
+        nonLin_corr_2d=SVDcorrection(cspad_azav,Isum,qs,filt=(f_xon&f_intens&f_loff),n=1,binp=100,poly=2)
+  
+        cspad_azav=cspad_azav-nonLin_corr_2d
 
     elif NonLinCorr == 'SVDbyBin':
         print('do SVD nonlinear corrections for each phi bin')
-        onData = cspad_azav/Isum[:, None, None]
-        onData=onData[f_xon&f_intens&f_loff&~np.isnan(Isum)] #mean along phi
-        xData=Isum[f_xon&f_intens&f_loff&~np.isnan(Isum)]
-        ts,means=BinnedMeanCake(xData,onData,100)#,binByPoints=False)
-        nonLin_corr_2d = np.full_like(cspad_azav, np.nan)
-        for phibin in range(means.shape[1]):
-            print(phibin)
-            dmat = means[:,phibin,:]
-            nanfilt1 = np.isfinite(np.nanmean(dmat,0))
-            a,b,c=do_svd_protected(qs[nanfilt1],ts,(means[:,phibin,nanfilt1]-np.nanmedian(means[:,phibin,nanfilt1],0)))
-            plt.suptitle('detector nonlinearity SVD')
-            NLcorr = np.full(qs.shape, np.nan)
-            NLcorr[nanfilt1]=a.T[:,0]*b[0]
-            NLparams=np.polyfit(ts[1:-1],c[1:-1,0],2)
+        
+        nonLin_corr_3d=SVDcorrectionByBin(cspad_azav,Isum,qs,
+                                          filt=(f_xon&f_intens&f_loff),n=1,binp=100,poly=2)
+   
 
-#                     print(NLcorr.shape, qs.shape)
-            assert NLcorr.shape==qs.shape #energy corr should be function of q
-
-                        #corr_factor=np.polyval(energ_corr['params'],d['ebeam/photon_energy'])#[f_intens]
-            NLcorr_factor=np.polyval(NLparams,Isum)#[f_intens])
-
-        #energ_corr_2d=energ_corr['corr']*corr_factor[:,None]*Isum[:,None] #now shape is (nshots,nq) and need to scale by Isum
-            nonLin_corr=NLcorr*NLcorr_factor[:,None]*Isum[:,None]
-#                     print(nonLin_corr.shape, nonLin_corr_2d.shape)
-            nonLin_corr_2d[:,phibin,:] = nonLin_corr
-        # nonLin_corr_2d=NLcorr*NLcorr_factor[:,None]*Isum[:,None] + (NLcorr1*NLcorr_factor1[:,None]*Isum[:,None])
-
-        cspad_azav=cspad_azav-nonLin_corr_2d[:,:,:]
+        cspad_azav=cspad_azav-nonLin_corr_3d
 
 #                 print('done')
 
@@ -271,42 +264,8 @@ def DetectorNonlinCorr(paramDict,outDict):
     
     
     
-    
-def NormalFactor(paramDict,outDict):
-    ''' make normalization factor and save normalized cake'''
-    
-    print('normalize data')
-    
-    qnorm=paramDict['qnorm']
-    Isum=outDict['Iscat']
-    cspad_azav=outDict['h5Dict']['azav']
-    f_intens=outDict['filters']['f_good']
-    f_loff=outDict['filters']['f_loff']
-    qs=outDict['h5Dict']['qs']
-    
-    #### how to normalize: by the Isum, or by a section of the high Q range?
-    if qnorm is None:
-        normal_factor=Isum
-        normal_factor_e=normal_factor
 
-    else:
-        qlow=qnorm[0]
-        qhigh=qnorm[1]
-        normal_factor=highq_normalization_factor(cspad_azav, qs, qlow,qhigh)
-#                 normal_factor_e=normal_factor[early_x,None,None]
-
-    ####### save 300 off shots averaged as cake#####
-    early_x=np.where(f_intens&f_loff)[0][:300]
-    assert len(early_x)>1, "There are no valid laser-off shots; lightStatus/laser is %s"%str(d['lightStatus']['laser'][:20])
-#             print(f_lon)
-#             print(f_loff)
-    #early_x=(np.argsort(x)<300)&(f_intens&f_loff)
-    cake=np.nanmean(cspad_azav[early_x,:,:]/normal_factor[early_x,None,None],0) #normalize by norm 
-    
-    outDict['normal_factor']=normal_factor
-    outDict['loff_cake']=cake
-    
-    print('normalize data done!')
+        
     
     
     
@@ -330,12 +289,12 @@ def doDifference(paramDict,outDict):
     ### do the diff signal ###
     totaloff=np.nanmax(np.nanmean(cake,0))
 #                 totaloff = 1
-    diff=DifferenceSignal(cspad_azav,normal_factor,f_intens,
+    diff=DifferenceSignal(cspad_azav,f_intens,
                           f_lon,f_loff,adj_subtr,totaloff=totaloff) 
     
     yerr=None
     if qerr=='WAve':
-        diff_err=DifferenceError(cspad_azav,normal_factor,azav_std,f_intens,
+        diff_err=DifferenceError(cspad_azav,outDict['h5Dict']['azav_std'],f_intens,
                                f_lon,f_loff,adj_subtr,totaloff=totaloff)
         onErr=diff_err[f_intens&f_lon]
         outDict['diff_Err']=onErr
@@ -416,7 +375,7 @@ def doTimeBinning(paramDict,outDict):
         
     elif paramDict['binSetup']=='nbins':
         nbins=paramDict['binSet2']
-        print('bin by points, %i per bin'%pts_per_bin)
+        print('bin by number of bins, %i bins'%nbins)
         bin_outfile=BinStat(xData,onData,yerr=yerr,n=nbins,binByPoints=False,
                  showplot=False,set_bins=None,count=True, xstat=xstat)
         
@@ -466,5 +425,82 @@ def doTimeBinning(paramDict,outDict):
     
     
     
+
+def SVDcorrection(data,var1,qs,filt=None,n=1,binp=100,poly=2):
+    '''correct data (dimensions t x phi x q) using svd( data - median(data) ) binned wrt variable var1 (dimension t),  correction of n=1 means only first component of svd is used to correct
+    returns correction to be subtracted.
+    data input is filtered by filt; data should already be normalized!!
+    binp=points per bin'''
     
+    if filt is None:
+        filt=np.full_like(var1,1,dtype=bool)
     
+    xData=var1[filt&~np.isnan(var1)]
+    onData=np.nanmean(data,1) #average over phis
+    onData=onData[filt&~np.isnan(var1)]
+    
+    #bin data wrt var1
+    outfile=BinStat(xData,onData,binp,yerr=None,binByPoints=True,showplot=False,set_bins=None,count=True, xstat=True)
+    xBin=outfile['xcenter']
+    dBin=outfile['binmean']
+    
+    ss,ww,tt=do_svd_protected(qs[10:-10],xBin,(dBin-np.nanmedian(dBin,0))[:,10:-10])
+    plt.suptitle('SVD of data - median')
+    
+    corr2D=np.zeros((data.shape[0],1,data.shape[2]))
+    
+    for nn in range(n):
+        corrSS=np.full(qs.shape,np.nan)
+        corrSS[10:-10]=ss.T[:,nn]*ww[nn]
+
+        corrParams=np.polyfit(xBin[1:-2],tt[1:-2,nn],poly)
+        corrF=np.polyval(corrParams,var1)
+        corr2D+=(corrSS*corrF[:,None])[:,None,:]
+        
+    
+    return corr2D
+
+
+
+
+def SVDcorrectionByBin(data,var1,qs,filt=None,n=1,binp=100,poly=2):
+    '''correct data (dimensions t x phi x q) using svd( data - median(data) ) binned wrt variable var1 (dimension t),  correction of n=1 means only first component of svd is used to correct
+    returns correction to be subtracted. Does this for each phi bin.
+    data input is filtered by filt; data should already be normalized!!
+    binp=points per bin'''
+    
+    if filt is None:
+        filt=np.full_like(var1,1,dtype=bool)
+    
+    xData=var1[filt&~np.isnan(var1)]
+    onData=data[filt&~np.isnan(var1)]
+    
+    #bin data wrt var1
+    outfile=BinStat(xData,onData,binp,yerr=None,binByPoints=True,showplot=False,set_bins=None,count=True, xstat=True)
+    xBin=outfile['xcenter']
+    dBin=outfile['binmean']
+
+    corr3D=np.zeros((data.shape))
+    for pp in range(dBin.shape[1]):
+        dBinPhi=dBin[:,pp,:].squeeze()
+        nanfilt1 = np.isfinite(np.nanmean(dBinPhi,0)) #filter out qs that are not finite
+        ss,ww,tt=do_svd_protected(qs[nanfilt1],xBin,(dBinPhi[:,nanfilt1]-np.nanmedian(dBinPhi[:,nanfilt1],0)))
+        plt.suptitle('SVD of data - median')
+    
+        corr2D=np.zeros((data.shape[0],1,data.shape[2]))
+        
+        for nn in range(n):
+            corrSS=np.full(qs.shape,np.nan)
+            corrSS[nanfilt1]=ss.T[:,nn]*ww[nn]
+
+            corrParams=np.polyfit(xBin[1:-2],tt[1:-2,nn],poly)
+            corrF=np.polyval(corrParams,var1)
+            corr2D+=(corrSS*corrF[:,None])[:,None,:]
+        corr3D[:,pp,:]=corr2D.squeeze()
+    
+    return corr3D    
+
+
+
+
+ 
