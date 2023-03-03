@@ -149,6 +149,7 @@ def ReduceData(inDir,exper,runs,outDir,paramDict1,varDict):
         outDict={}
         then=time.time()
         LoadH5(fname,outDir,varDict,paramDict, outDict)
+        # MaskAzav(paramDict,outDict,listBinInd=np.array([[0,0],[6,425],[6,400],[6,401]]))
         setupFilters(paramDict,outDict)
         IscatFilters(paramDict,outDict)
         # eBeamFilter(paramDict,outDict)
@@ -158,13 +159,18 @@ def ReduceData(inDir,exper,runs,outDir,paramDict1,varDict):
         print(now-then, " seconds")
         saveReduction(outDir,paramDict,outDict)
         
+        if paramDict['enforce_iso']:
+            EnforceIso(paramDict,outDict)
+        
         MakeScanAx(paramDict,outDict,tt_corrNew=None)
         DarkSubtract(paramDict,outDict)
+        NormalFactor(paramDict,outDict)
+        
         if paramDict['energy_corr']:
             EnergyCorr(paramDict,outDict)
         if paramDict['NonLin_corr'] is not None:
             DetectorNonlinCorr(paramDict,outDict)
-        NormalFactor(paramDict,outDict)
+        
         doDifference(paramDict,outDict)
         now = time.time() #Time after it finished
         print(now-then, " seconds")
@@ -173,6 +179,12 @@ def ReduceData(inDir,exper,runs,outDir,paramDict1,varDict):
         now = time.time() #Time after it finished
         print(now-then, " seconds")
         
+        if paramDict['BackSub']=='SVD':
+            doSVDBackSub(paramDict,outDict,earlytrange=paramDict['earlytrange'])
+        elif paramDict['BackSub']=='ave':
+            AveBackSub(paramDict,outDict,earlytrange=paramDict['earlytrange'])
+            
+            
         if paramDict['aniso']:
             doAnisotropy(paramDict,outDict)
         saveDictionary(outDir+'npy/',paramDict,outDict)
