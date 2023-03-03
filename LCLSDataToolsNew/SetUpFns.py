@@ -27,7 +27,6 @@ def LoadH5(fname,outpath,varDict,paramDict,outDict):
     overwrite=paramDict['overwrite']
     
     basename=fname.split('/')[-1].split('.')[0]
-    
     basename1=basename
     if not overwrite and os.path.isfile(outpath+'npy/'+basename+'_out.npy'):
         nn=0
@@ -221,17 +220,13 @@ def IscatFilters(paramDict,outDict):
         mm=np.nanmean(outRSC[:,0])
         bb=np.nanmean(outRSC[:,1]) 
         #find inliers
-        resid=np.abs((mm*ipm1.squeeze()+bb)-Isum1.squeeze())
-#                 in_mask=np.nonzero(resid<=thresh) #inliers
-#                 out_mask=np.nonzero(resid>thresh) #outliers
-        in_mask=resid<=thresh #inliers
-        out_mask=resid>thresh #outliers
+        residF=np.abs((mm*ipm1.squeeze()+bb)-Isum1.squeeze())/Isum1.squeeze()
+        in_mask=residF<=thresh #inliers
+        out_mask=residF>thresh #outliers
         line_y=ipm1[in_mask]*mm+bb
         print('correlation equation = %e x +%e' %(mm,bb))
         print('fraction of data kept %e' %(Isum1[in_mask].shape[0]/Isum1.shape[0]))
         f_corr=np.zeros(Iscat.shape).astype(bool)
-#                 print(in_mask.shape)
-#                 print(nanfilt.shape)
         f_corr[nanfilt]=in_mask
         outDict['filters']['f_corr']=f_corr
         outDict['filters']['f_good']=outDict['filters']['f_good'] & f_corr
@@ -241,21 +236,24 @@ def IscatFilters(paramDict,outDict):
         plt.figure('red')
         plt.subplot(2,2,2)
         if paramDict['corr_filter']:
-            plt.scatter(ipm1[out_mask],Isum1[out_mask],marker='.',color='grey',alpha=.2)
-            plt.scatter(ipm1[in_mask],Isum1[in_mask],marker='.',color='blue',alpha=.2)
+            plt.hist2d(ipmi[nanfilt].squeeze(),Iscat[nanfilt].squeeze(),100,cmap='Greys',
+                       norm=mpl.colors.SymLogNorm(linthresh=1, linscale=1))
+            plt.scatter(ipm1[in_mask],Isum1[in_mask],marker='.',color='blue',alpha=.1)
             plt.plot(ipm1[in_mask],line_y,color='r')
+            plt.xlim(left=0)
         else:
             nanfilt=~np.isnan(Iscat)&~np.isnan(ipmi)
-            plt.hist2d(ipmi[nanfilt],Iscat[nanfilt],100,cmap='Greys',
+            plt.hist2d(ipmi[nanfilt].squeeze(),Iscat[nanfilt].squeeze(),100,cmap='Greys',
                        norm=mpl.colors.SymLogNorm(linthresh=1, linscale=1))
-            
+          
         if paramDict['ipm_filter'][0] != None:
             plt.axvline(ipm_thresh[0],ls='--',color='r')
         if paramDict['ipm_filter'][1] != None:
             plt.axvline(ipm_thresh[1],ls='--',color='r')
+        # plt.ticklabel_format(scilimits=(-3,3))
         plt.xlabel(ipmkey)
         plt.ylabel('Iscat')
-        plt.title('log of hist of shots')
+        plt.title('hist of shots (log colorbar)')
 
             
             
@@ -347,9 +345,9 @@ def saveReduction(outDir,paramDict,outDict):
     plt.suptitle(basename)
     figdir = outDir + 'figures/'
     plt.tight_layout()
-    plt.subplots_adjust(top=0.95)
+    plt.subplots_adjust(top=0.90)
     plt.savefig(figdir+basename+'_reduction.png')   
-
+    print('saved reduction.png')
     
     
     
