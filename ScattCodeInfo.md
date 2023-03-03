@@ -177,6 +177,8 @@
 		def doDifference (paramDict, outDict)
 		def AveAlIShots (paramDict, outDict)
 		def doTimeBinning (paramDict, outDict)
+		def SVDcorrection(data,var1,qs,filt=None,n=1,binp=100,poly=2)
+		def SVDcorrectionByBin(data,var1,qs,filt=None,n=1,binp=100,poly=2)
 
 ## diffSignalTools.py
 		def high_normalization_factor(dat, qs, qlow, qhigh)
