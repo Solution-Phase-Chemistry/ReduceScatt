@@ -19,7 +19,7 @@
        
         'ipm'    : 4, # select ipm to use
         'corr_filter' : True, #whether to filter based on Iscat/ipm correlation
-        'corr_threshold': 50 , #threshold for correlation filter
+        'corr_threshold': .03 , #threshold for correlation filter, threshold is fractional residual limit (eg. 0.03 means residuals should be <= 0.03 of the value to be kept)
         'ipm_filter' : (10000,None), #set limits for ipm intensity
         'Iscat_threshold'  : 100, #lower limit for Iscat
         'use_TT'   :   True,  #options are True, False, 'filter'  ('filter is for filter only) or 'withlxt' (time delay=lxt+encoder+ttcorrection)
