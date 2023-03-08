@@ -93,6 +93,21 @@ def doSVDBackSub(paramDict,outDict,earlytrange=(-.5e-12, 0)):
         
         
         
+ def AveBackSub(paramDict,outDict,earlytrange=(-.5e-12, 0)):
+    ''' subtract average signal from early times'''
+    ts=outDict['xcenter']
+    qrange=paramDict['qrange']
+    diff_temp=outDict['diff_bin']
+    qs=outDict['h5Dict']['qs']
+    ts=outDict['xcenter']
+    
+    goodq = np.nonzero((qs > qrange[0]) & (qs < qrange[1]))[0]
+    earlyt = np.nonzero((ts > earlytrange[0]) & (ts < earlytrange[1]))[0]  
+    dataEarly = diff_temp[earlyt,:,:].squeeze()[:,:,goodq].squeeze()
+    dataEave=np.nanmean(dataEarly,0)
+    diff_temp[:,:,goodq] = diff_temp[:,:,goodq].squeeze() - dataEave
+    outDict['diff_bin']=diff_temp
+    print('average early time background subtracted')
         
         
 
