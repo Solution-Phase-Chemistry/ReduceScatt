@@ -117,6 +117,7 @@ def saveDictionary(outpath,paramDict,outDict):
     '''delete h5Dict from outDict, save outDict to .npy file in directory=outpath
     '''
     overwrite=paramDict['overwrite']
+    savemat=paramDict['save_mat']
     
     
     #add things we want
@@ -136,7 +137,6 @@ def saveDictionary(outpath,paramDict,outDict):
     print('saved output to',fout)
     print('%i/%i events used'%(outDict['numshots_used'],outDict['numshots']))
     
-        
     if savemat:
         fmat=outpath+outDict['h5name']+'_out.mat'
         
