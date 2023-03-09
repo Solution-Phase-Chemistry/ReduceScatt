@@ -26,7 +26,7 @@ paramDict= {
     't0_corr' : None,  #false or float offset for time zero
     
     'enforce_iso' : False # enforce off shots isotropic
-'energy_corr' : True, # ebeam photon energy correction (True or False)
+    'energy_corr' : True, # ebeam photon energy correction (True or False)
     'NonLin_corr': None, #None, SVD, poly, or SVDbyBin
     'AdjSub'    : 50, #number of adjascent off shots to average and subtract, -1 subtracts all 
     
@@ -37,14 +37,13 @@ paramDict= {
     'shift_n': 0, # phi offset for anisotropy in bins
     
     'xstat' : True, #calculate mean and std for x axis during binning step
-
-
-'show_svd' : False #Whether to display and save an extra graph with SVD of total, S0, and S2. 
-	'svd_n : 4,  #how many singular values to plot
-'smooth' : None, #amount to smooth the data before SVD analysis. [q,t] where q and t are odd and represent width of bin for median filter.
-'slice_plot' : None, # the q indices to mean and plot against the x variable in a 1d plot
-
-	'overwrite' : True, # overwrite .npy files? If False then will increment file base name by 1 each time a new file is saved for the same run
+    
+    'show_svd' : False #Whether to display and save an extra graph with SVD of total, S0, and S2. 
+    'svd_n : 4,  #how many singular values to plot
+    'smooth' : None, #amount to smooth the data before SVD analysis. [q,t] where q and t are odd and represent width of bin for median filter.
+    'slice_plot' : None, # the q indices to mean and plot against the x variable in a 1d plot
+    
+    'overwrite' : True, # overwrite .npy files? If False then will increment file base name by 1 each time a new file is saved for the same run
     'save_mat' : False,  # save a .mat file output
 
     }
