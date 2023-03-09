@@ -1,13 +1,15 @@
+# paramDict options and details
+
 paramDict= {
 
     'binSetup'  : 'points', #'fixed' or 'unique' or 'points' or 'nbins' = (set bins; bin by unique axis values; points per bin; number of bins)
     'binSet2'   : 300, # integer points per bin for 'points' or list of bin edges for 'fixed' or integer number of bins for 'nbins'
     'binMethod' : 'ave', ## 'ave' or 'sum' ?  ### this isn't actually implemented yet. 
     
-    'qnorm'     : (3,4), ## low,high or None (None=use Iscat)
-    'qrange'    : (.5,4.5), ## for plots
+    'qnorm'     : (3,4), ## (low,high) qrange used for normalization or None (None=use Iscat)
+    'qrange'    : (.5,4.5), ## q range used for plots and svd
     
-    'scan_var' : None,  #variable that is being scanned
+    'scan_var' : None,  #variable that is being scanned; Usually this can be left as None, sometimes 
     'x_var'   : None, #binning axis, if it is not scan variable
     
     'show_filters'  : True, #show filter plots
@@ -15,8 +17,8 @@ paramDict= {
     'useAzav_std'  : False, #False, 'percent', 'WAve'; if False, no azav_sqr processing, if 'percent', only use percent filter, if 'Wave' then use it to calculate weighted averages throughout
     'azav_percent_filter' : 50, # if useAzav_std='percent' or 'WAve', use azav_std as filter, reject bins where std is > this percent of bin mean value
    
-    'ipm'    : 4, # select ipm to use
-    'corr_filter' : True, #whether to filter based on Iscat/ipm correlation
+    'ipm'    : 4, # select ipm to use as upstream I0; at XCS use ipm 4 or 5 
+    'corr_filter' : True, #whether to filter based on Iscat/ipm correlation (True or False)
     'corr_threshold': .03 , #threshold for correlation filter, threshold is fractional residual limit (eg. 0.03 means residuals should be <= 0.03 of the value to be kept)
     'ipm_filter' : (10000,None), #set limits for ipm intensity
     'Iscat_threshold'  : 100, #lower limit for Iscat
@@ -26,7 +28,10 @@ paramDict= {
     'enforce_iso' : False # enforce off shots isotropic
 'energy_corr' : True, # ebeam photon energy correction (True or False)
     'NonLin_corr': None, #None, SVD, poly, or SVDbyBin
-    'AdjSub'    : 50, #number of adjascent off shots to average and subtract, -1 subtracts all
+    'AdjSub'    : 50, #number of adjascent off shots to average and subtract, -1 subtracts all 
+    
+    'BackSub' : None,  #None, 'SVD', or 'ave'  Subtract t <0 signal from all data, either take the svd of the t<0 and subtract the major component or just subtract the average
+    'earlytrange':(-0e-12,0.5e-12), #time range to use for 'BackSub'  
     
     'aniso'  : True, # calculate anisotropy?
     'shift_n': 0, # phi offset for anisotropy in bins
