@@ -12,13 +12,15 @@
 - integer number of bins for 'binSetup': 'nbins' 
 ###### 'binMethod' : how to bin
 - 'ave' calculates average value of points in bin
-- 'sum' calculates sum of points in bin (this isn't implemented yet) \
+- 'sum' calculates sum of points in bin (this isn't implemented yet)
+
+
 ###### 'qnorm' : qrange for normalization
 - (float,float) = low, high limits of q range used for normalization
 - None = use Iscat for normalization
 ###### 'qrange' : qrange for plots
 - (float,float) q range used for plots and SVD
-###### 'scan_var' :variable that is being scanned
+###### 'scan_var' : variable that is being scanned
 - None : most of the time this can be left as None and scan variable will automatically be read from h5 file.  If it is not being read then specifiy it here (eg. 'lensh', or 'newdelay' for a delay scan)
 ###### 'x_var' : binning axis, if it is not same as scan variable
 - None : most of the time leave this as None
@@ -31,12 +33,14 @@
 - 'Wave' use azav_sqr to calculate variance, use variance to calculate weighted averages throughout reduction
 ###### 'azav_percent_filter' : use azav_std as filter, reject bins where std is > this percent of bin mean value
 - float percentage 
+
+
 ###### 'ipm' : select ipm to use as upstream I0
 - integer (for XCS this is either 4 or 5)
 ###### 'corr_filter' : whether to filter based on Iscat vs I0 correlation
 - True
 - False
-###### 'corr_threshold' : #threshold for correlation filter, threshold is fractional residual limit (eg. 0.03 means residuals should be <= 0.03 of the value to be kept)
+###### 'corr_threshold' : threshold for correlation filter, threshold is fractional residual limit (eg. 0.03 means residuals should be <= 0.03 of the value to be kept)
 - float
 ###### 'ipm_filter' :  set low and high limits for ipm readout
 - (float,float)
@@ -50,6 +54,8 @@
 ###### 't0_corr' : constant offset for time zero (eg. if delay axis reads 1 ps at time zero (difference signal onset), set this to 1 ps)
 - None
 - float (seconds)
+
+
 ###### 'enforce_iso' : enforce isotropic off shots
 - True
 - False
@@ -69,6 +75,8 @@
 - 'ave' subtract the average of the t<0 data
 ###### 'earlytrange': time range to use fr t<0 data in 'BackSub'
 - (float,float) in seconds
+
+
 ###### 'aniso' : calculate anisotropy?
 - True
 - False
@@ -87,6 +95,8 @@
 - (integer,integer)  = (bin_q, bin_t) where both are odd and represent width of bin (in points) for median filter 
 ###### 'slice_plot' : the q indices to average and plot against the x-variable in a 1d plot
 - None
+
+
 ###### 'overwrite' :  overwrite .npy files? 
 - True
 - False then will increment file base name by 1 each time a new file is saved for the same run
