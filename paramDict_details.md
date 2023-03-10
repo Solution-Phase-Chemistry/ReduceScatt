@@ -5,10 +5,10 @@
 - 'fixed' specify array of bin edges 
 - 'unique' bin by unique axis values 
 - 'points' specify number of points per bin 
-- 'nbins'  specify number of bins ' 
+- 'nbins'  specify number of bins
 ###### 'binSet2' :  more binning parameters
 - integer points per bin for 'binSetup': 'points'
-- list/array of bin edges (float, seconds) for 'binSetup': 'fixed'
+- list/array of bin edges (float, in seconds) for 'binSetup': 'fixed'
 - integer number of bins for 'binSetup': 'nbins' 
 ###### 'binMethod' : how to bin
 - 'ave' calculates average value of points in bin
