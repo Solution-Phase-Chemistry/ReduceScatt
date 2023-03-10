@@ -104,5 +104,51 @@
 - True
 - False
 
+## paramDict defauls
+
+    paramDict= {
+            'binSetup'  : 'points',
+            'binSet2'   : 300,
+            'binMethod' : 'ave', 
+            'qnorm'     : (3,4), 
+            'qrange'    : (0.5,4),
+            'show_filters'  : True, #show filter plots
+            'useAzav_std'  : False, 
+            'azav_percent_filter' : None, 
+            
+            
+            'ipm'    : 5, # select ipm to use for I0
+            'corr_filter' : True,
+            'corr_threshold': .03 , 
+            'ipm_filter' : (1000,None), #set limits for ipm intensity
+            'Iscat_threshold'  : 10, #lower limit for Iscat
+
+            'use_TT'   :  True,  
+            'scan_var' : None,
+            'x_var'   : None,
+
+            't0_corr' : None,  #false or float offset for time zero
+            'enforce_iso': False, #enforce isotropic off shots?
+            'energy_corr' : False, # ebeam photon energy correction
+            'NonLin_corr': None, #None, SVD, poly, or SVDbyBin
+
+            'AdjSub'    : 50, #number of adjascent off shots to average and subtract, -1 subtracts all
+            'aniso'  : False,
+            'shift_n' :0,
+            'xstat' : True,
+
+            'BackSub': None,
+            'earlytrange':(-0.5e-12,0e-12),
+
+            'showSVD': False, #do svd
+            'SVD_n': 4, # number of svd components
+            'slice_plot':None, #how to slice up plots displayed at end
+            'smooth':None, #smoothing before svd?
+
+            'overwrite' : True, # overwrite files? 
+            'save_mat'  : False,
+
+        }
+
 
 
