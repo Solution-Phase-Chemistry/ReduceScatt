@@ -1,49 +1,98 @@
 # paramDict options and details
 
-paramDict= {
 
-    'binSetup'  : 'points', #'fixed' or 'unique' or 'points' or 'nbins' = (set bins; bin by unique axis values; points per bin; number of bins)
-    'binSet2'   : 300, # integer points per bin for 'points' or list of bin edges for 'fixed' or integer number of bins for 'nbins'
-    'binMethod' : 'ave', ## 'ave' or 'sum' ?  ### this isn't actually implemented yet. 
-    
-    'qnorm'     : (3,4), ## (low,high) qrange used for normalization or None (None=use Iscat)
-    'qrange'    : (.5,4.5), ## q range used for plots and svd
-    
-    'scan_var' : None,  #variable that is being scanned; Usually this can be left as None, sometimes 
-    'x_var'   : None, #binning axis, if it is not scan variable
-    
-    'show_filters'  : True, #show filter plots
-    
-    'useAzav_std'  : False, #False, 'percent', 'WAve'; if False, no azav_sqr processing, if 'percent', only use percent filter, if 'Wave' then use it to calculate weighted averages throughout
-    'azav_percent_filter' : 50, # if useAzav_std='percent' or 'WAve', use azav_std as filter, reject bins where std is > this percent of bin mean value
-   
-    'ipm'    : 4, # select ipm to use as upstream I0; at XCS use ipm 4 or 5 
-    'corr_filter' : True, #whether to filter based on Iscat/ipm correlation (True or False)
-    'corr_threshold': .03 , #threshold for correlation filter, threshold is fractional residual limit (eg. 0.03 means residuals should be <= 0.03 of the value to be kept)
-    'ipm_filter' : (10000,None), #set limits for ipm intensity
-    'Iscat_threshold'  : 100, #lower limit for Iscat
-    'use_TT'   :   True,  #options are True, False, 'filter'  ('filter is for filter only) or 'withlxt' (time delay=lxt+encoder+ttcorrection)
-    't0_corr' : None,  #false or float offset for time zero
-    
-    'enforce_iso' : False # enforce off shots isotropic
-    'energy_corr' : True, # ebeam photon energy correction (True or False)
-    'NonLin_corr': None, #None, SVD, poly, or SVDbyBin
-    'AdjSub'    : 50, #number of adjascent off shots to average and subtract, -1 subtracts all 
-    
-    'BackSub' : None,  #None, 'SVD', or 'ave'  Subtract t <0 signal from all data, either take the svd of the t<0 and subtract the major component or just subtract the average
-    'earlytrange':(-0e-12,0.5e-12), #time range to use for 'BackSub'  
-    
-    'aniso'  : True, # calculate anisotropy?
-    'shift_n': 0, # phi offset for anisotropy in bins
-    
-    'xstat' : True, #calculate mean and std for x axis during binning step
-    
-    'show_svd' : False #Whether to display and save an extra graph with SVD of total, S0, and S2. 
-    'svd_n : 4,  #how many singular values to plot
-    'smooth' : None, #amount to smooth the data before SVD analysis. [q,t] where q and t are odd and represent width of bin for median filter.
-    'slice_plot' : None, # the q indices to mean and plot against the x variable in a 1d plot
-    
-    'overwrite' : True, # overwrite .npy files? If False then will increment file base name by 1 each time a new file is saved for the same run
-    'save_mat' : False,  # save a .mat file output
+###### 'binSetup': type of binning of scanvariable
+- 'fixed' specify array of bin edges 
+- 'unique' bin by unique axis values 
+- 'points' specify number of points per bin 
+- 'nbins'  specify number of bins ' 
+###### 'binSet2' :  more binning parameters
+- integer points per bin for 'binSetup': 'points'
+- list/array of bin edges (float, seconds) for 'binSetup': 'fixed'
+- integer number of bins for 'binSetup': 'nbins' 
+###### 'binMethod' : how to bin
+- 'ave' calculates average value of points in bin
+- 'sum' calculates sum of points in bin (this isn't implemented yet) \
+###### 'qnorm' : qrange for normalization
+- (float,float) = low, high limits of q range used for normalization
+- None = use Iscat for normalization
+###### 'qrange' : qrange for plots
+- (float,float) q range used for plots and SVD
+###### 'scan_var' :variable that is being scanned
+- None : most of the time this can be left as None and scan variable will automatically be read from h5 file.  If it is not being read then specifiy it here (eg. 'lensh', or 'newdelay' for a delay scan)
+###### 'x_var' : binning axis, if it is not same as scan variable
+- None : most of the time leave this as None
+###### 'show_filters' : show filter plots
+- True show plots
+- False don't show plots
+###### 'useAzav_std' :  if azav_sqr is saved in h5 file, this parameter dictates how it is used
+- False if no azav_sqr processing
+- 'percent' if only use azav_sqr as a percent filter (reject points for which variance is greater than some percent of azav)
+- 'Wave' use azav_sqr to calculate variance, use variance to calculate weighted averages throughout reduction
+###### 'azav_percent_filter' : use azav_std as filter, reject bins where std is > this percent of bin mean value
+- float percentage 
+###### 'ipm' : select ipm to use as upstream I0
+- integer (for XCS this is either 4 or 5)
+###### 'corr_filter' : whether to filter based on Iscat vs I0 correlation
+- True
+- False
+###### 'corr_threshold' : #threshold for correlation filter, threshold is fractional residual limit (eg. 0.03 means residuals should be <= 0.03 of the value to be kept)
+- float
+###### 'ipm_filter' :  set low and high limits for ipm readout
+- (float,float)
+###### 'Iscat_threshold' :  lower limit for Iscat value
+- float
+###### 'use_TT' : whther and how to use time tool information
+- True use time tool to calculate delay axis and as a filter
+- False do not use time tool at all
+- 'filter'  only use time tool as a filter
+- 'withlxt'  use time tool, encoder, and lxt to calculate delay axis (time delay=lxt+encoder+ttcorrection), use timetool as filter
+###### 't0_corr' : constant offset for time zero (eg. if delay axis reads 1 ps at time zero (difference signal onset), set this to 1 ps)
+- None
+- float (seconds)
+###### 'enforce_iso' : enforce isotropic off shots
+- True
+- False
+###### 'energy_corr' : ebeam photon energy correction
+- True
+- False
+###### 'NonLin_corr' : detector nonlinearity (with respect to intensity) correction
+- None
+- 'SVD'  uses SVD correction on azimuthally averaged signal
+- 'SVDbyBin' uses SVD correction for each phi bin
+###### 'AdjSub' :  number of adjascent off shots to average and subtract
+- integer
+- -1 to subtract all off shots
+###### 'BackSub' : Subtract t<0 signal from all data
+- None do not do back subtraction
+- 'SVD' take the SVD of the t<0 data and subtract the major component
+- 'ave' subtract the average of the t<0 data
+###### 'earlytrange': time range to use fr t<0 data in 'BackSub'
+- (float,float) in seconds
+###### 'aniso' : calculate anisotropy?
+- True
+- False
+###### 'shift_n' : phi offset for anisotrpoy calculation in bins
+- integer 
+###### 'xstat' : calculate mean and standard deviation for x-axis during binning step?
+- True
+- False
+###### 'show_svd' : Calculate SVD of scattering signal (and S0, S2 if applicable), display and save figure
+- True
+- False
+###### 'svd_n' : if 'show_svd', how many singular values to plot
+- integer
+###### 'smooth' : if 'show_svd' amount to smooth data before SVD analysis
+- None
+- (integer,integer)  = (bin_q, bin_t) where both are odd and represent width of bin (in points) for median filter 
+###### 'slice_plot' : the q indices to average and plot against the x-variable in a 1d plot
+- None
+###### 'overwrite' :  overwrite .npy files? 
+- True
+- False then will increment file base name by 1 each time a new file is saved for the same run
+###### 'save_mat' : save a .mat file output
+- True
+- False
 
-    }
+
+
