@@ -3,7 +3,7 @@ Filter and time bin the azimuthally averaged X-ray scattering smalldata from LCL
 
 ## There are three main dictionaries to run the code:  
 ### Input dictionaries:
-paramDict:  see ScattCodeInfo.md file of possible parameters and explanations, these are processing parameters \
+paramDict:  see paramDict_details.md file of possible parameters and explanations, these are processing parameters \
 varDict:  dictionary of variables desired and used by code and where they are found in the .h5 file.  See ScattCodeInfo.md for example 
 
 ### Output :
