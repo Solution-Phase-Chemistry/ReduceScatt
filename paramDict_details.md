@@ -31,7 +31,7 @@
 - False if no azav_sqr processing
 - 'percent' if only use azav_sqr as a percent filter (reject points for which variance is greater than some percent of azav)
 - 'Wave' use azav_sqr to calculate variance, use variance to calculate weighted averages throughout reduction
-###### 'azav_percent_filter' : use azav_std as filter, reject bins where std is > this percent of bin mean value
+###### 'azav_percent_filter' : if 'useAzav_std' is not False, reject bins where std is > this percent of bin mean value
 - float percentage 
 
 
