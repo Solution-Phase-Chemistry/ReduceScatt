@@ -104,7 +104,7 @@
 - True
 - False
 
-## paramDict defauls
+## paramDict defaults
 
     paramDict= {
             'binSetup'  : 'points',
@@ -115,8 +115,7 @@
             'show_filters'  : True, #show filter plots
             'useAzav_std'  : False, 
             'azav_percent_filter' : None, 
-            
-            
+                        
             'ipm'    : 5, # select ipm to use for I0
             'corr_filter' : True,
             'corr_threshold': .03 , 
