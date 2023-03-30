@@ -95,7 +95,7 @@
 - (integer,integer)  = (bin_q, bin_t) where both are odd and represent width of bin (in points) for median filter 
 ###### 'slice_plot' : determines what is plotted in the results overview plot
 - None:  plot every other time slice, DiffSig vs Q
-- [int,int]: 1D plot of data vs time averaged over q range defined by [qlow index, qhigh index]
+- [int,int]: 1D plot of data vs time averaged over q range defined by [qlow, qhigh]
 
 
 
