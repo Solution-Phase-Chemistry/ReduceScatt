@@ -93,8 +93,10 @@
 ###### 'smooth' : if 'show_svd' amount to smooth data before SVD analysis
 - None
 - (integer,integer)  = (bin_q, bin_t) where both are odd and represent width of bin (in points) for median filter 
-###### 'slice_plot' : the q indices to average and plot against the x-variable in a 1d plot
-- None
+###### 'slice_plot' : determines what is plotted in the results overview plot
+- None:  plot every other time slice, DiffSig vs Q
+- [float,float]: 1D plot of data vs t averaged over q range defined by [qlow, qhigh]
+
 
 
 ###### 'overwrite' :  overwrite .npy files? 
