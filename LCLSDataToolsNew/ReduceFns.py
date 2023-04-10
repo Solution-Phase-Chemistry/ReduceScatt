@@ -213,13 +213,15 @@ def ReduceData(inDir,exper,runs,outDir,paramDict1,varDict):
         
         
         
-def StackProccessed(inpath,exper,runs,method='bincount'):
+def StackProccessed(inpath,exper,runs,base=None, method='bincount'):
     ''' for runs in experiment, load .npy files from inpath and stack runs using method specified.
     Methods that return average signal per t bin:
     'bincount' = weigh each run by number of shots per bin and sum, then divide by total shots in bin
     'WAve' = weighted average for each bin using bin_err
     Methods that return total signal per t bin:
     'Sum' = just sum values for each t bin
+    
+    base=None or base='_01' for inpath+exper+'_Run%04i_01_out.npy' etc 
     '''
     
     ## load data
@@ -230,14 +232,17 @@ def StackProccessed(inpath,exper,runs,method='bincount'):
     AllBC=[]
     AllErr=[]
     for run in runs:
-        data1=np.load(inpath+exper+'_Run%04i_out.npy'%run,allow_pickle=True).item()
+        if base is None:
+            data1=np.load(inpath+exper+'_Run%04i_out.npy'%run,allow_pickle=True).item()
+        else:
+            data1=np.load(inpath+exper+'_Run%04i'%run+base+'_out.npy',allow_pickle=True).item()
         AllData.append(data1['diff_bin'])
         AllTs.append(data1['xcenter'])
         AllQs.append(data1['qs'])
         AllPhis.append(data1['phis'])
         AllBC.append(data1['xbin_occupancy'])
         if method=='WAve':
-            AllErr.append(data1['diff_err'])
+            AllErr.append(data1['diff_std'])
         
         
     ## check that all ts and qs are the same or throw error
@@ -272,7 +277,17 @@ def StackProccessed(inpath,exper,runs,method='bincount'):
         sumBC=np.nansum(AllBC,axis=0) ##total shots per bin
         aveD=divAny(sumD,sumBC,axis=(1,2,0)) #average signal per shot per bin
         aveD[np.nonzero(sumBC==0),:,:]=np.nan
-        stackDict={'aveData':aveD,'sumBC':sumBC,'ts':ts,'qs':qs,'phis':phis,'runs':runs,'method':method}
+        
+        #standard error= sqrt((sum(bc_i*(x_i-<x>)**2))/(sum(bc_i-1)*sum(bc_i)))
+        AllErr1=divAny((AllData-aveD)**2,1/AllBC,axis=(2,3,0,1))
+        sumAE1=np.nansum(AllErr1,axis=0)
+        ssBC=(sumBC-1)*(sumBC)
+        AllErr2=divAny(sumAE1,ssBC,axis=(1,2,0))
+        Derr=np.sqrt(AllErr2)
+        Derr[np.nonzero(sumBC==0),:,:]=np.nan
+    
+        
+        stackDict={'aveData':aveD,'errData':Derr,'sumBC':sumBC,'ts':ts,'qs':qs,'phis':phis,'runs':runs,'method':method}
         return stackDict
     
     if method=='WAve':
