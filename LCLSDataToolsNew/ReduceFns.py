@@ -93,7 +93,7 @@ def doSVDBackSub(paramDict,outDict,earlytrange=(-.5e-12, 0)):
         
         
         
- def AveBackSub(paramDict,outDict,earlytrange=(-.5e-12, 0)):
+def AveBackSub(paramDict,outDict,earlytrange=(-.5e-12, 0)):
     ''' subtract average signal from early times'''
     ts=outDict['xcenter']
     qrange=paramDict['qrange']
