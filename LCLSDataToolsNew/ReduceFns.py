@@ -118,6 +118,7 @@ def saveDictionary(outpath,paramDict,outDict):
     '''
     overwrite=paramDict['overwrite']
     savemat=paramDict['save_mat']
+    saveh5=paramDict['save_h5']
     
     
     #add things we want
@@ -151,7 +152,21 @@ def saveDictionary(outpath,paramDict,outDict):
         
         scio.savemat(fmat,outDict2)
         print('saved .mat output')
-    
+        
+    if saveh5:
+        fh5 = outpath+outDict['h5name']+'_out.h5'
+        with h5py.File(fh5, 'w') as hf:
+            for key in outDict.keys():
+                if type(outDict[key])==dict:
+                    hf.create_group(key)
+                    for key2 in outDict[key].keys():
+                        try:
+                            hf.create_dataset(key+'/'+key2,data=outDict[key][key2])
+                        except:
+                            hf.create_dataset(key+'/'+key2,data='None')
+                else:
+                    hf.create_dataset(key,data=outDict[key])
+        print('saved .h5 output')
     
     
     
@@ -417,7 +432,7 @@ def overviewPlot(figdir,paramDict,outDict):
         plot_bow(qs[qroi],diff2d_bow[:,qroi],fig='res',sub=(nplot,2,4))
     else:
         plt.figure('res')
-        slax=plt.subplot((nplot,2,4),sharex=ax3)
+        slax=plt.subplot(nplot,2,4,sharex=ax3)
         plot_slice(ts,qs,diff2d,slice_plot,ax=slax,logscan=logscan)
         #plt.plot(ts,np.nanmean(diff2d[:,slice_plot],1),'o')
         plt.ylabel('Signal at q=%s-%s'%(qs[slice_plot[0]],qs[slice_plot[-1]]))
