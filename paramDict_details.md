@@ -106,6 +106,10 @@
 - True
 - False
 
+###### 'save_h5' : save a .h5 file output
+- True
+- False
+
 ## paramDict defaults
 
     paramDict= {
@@ -148,6 +152,7 @@
 
             'overwrite' : True, # overwrite files? 
             'save_mat'  : False,
+            'save_h5' : True,
 
         }
 
