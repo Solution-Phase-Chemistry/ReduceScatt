@@ -43,7 +43,7 @@
 ###### 'corr_threshold' : threshold for correlation filter, threshold is fractional residual limit (eg. 0.03 means residuals should be <= 0.03 of the value to be kept)
 - float
 ###### 'ipm_filter' :  set low and high limits for ipm readout
-- (float,float)
+- (float,float), (float,None), (None,float), (None,None)
 ###### 'Iscat_threshold' :  lower limit for Iscat value
 - float
 ###### 'use_TT' : whther and how to use time tool information
