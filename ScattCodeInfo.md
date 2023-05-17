@@ -221,4 +221,8 @@
 ## Bin2DFns.py
 	def Bin2D(paramDict,outDict)
 	def ReduceData2D(inDir,exper,runs,outDir,paramDict,varDict)
+	
+## NoScanVarFns.py
+	def RedNoScanV(inDir,exper,runs,outDir,paramDict1,varDict)
+	def StackNoScanVar(inpath,exper,runs,base=None, method='bincount')
 
