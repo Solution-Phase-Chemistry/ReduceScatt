@@ -147,7 +147,6 @@ def NormalFactor(paramDict,outDict):
     #early_x=(np.argsort(x)<300)&(f_intens&f_loff)
     # cake=np.nanmean(cspad_azav[early_x,:,:]/normal_factor[early_x,None,None],0) #normalize by norm 
     cake=np.nanmean(divAny(cspad_azav[early_x,:,:],normal_factor[early_x,:]),0) #normalize by norm
-    cake=divAny(cake,np.nanmax(cake,1))
     
     outDict['normal_factor']=normal_factor
     outDict['loff_cake']=cake
@@ -304,7 +303,7 @@ def doDifference(paramDict,outDict):
     
     outDict['x_Data']=x[f_intens&f_lon]
     outDict['diff_Data']=diff[f_intens&f_lon]
-    
+    outDict['loff_cake']=cake/totaloff
     
     print('Difference Signal Done!')
     
