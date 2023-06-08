@@ -353,9 +353,9 @@ def overviewPlot(figdir,paramDict,outDict):
         #qroi = np.arange(23,422)
         #print(qroi)   
         
-    if enforce_iso: #if we are doing the iso correction:
-        diff=diff/outDict['iso_corr']
-        cake=cake/outDict['iso_corr']
+#     if enforce_iso: #if we are doing the iso correction:
+#         diff=diff/outDict['iso_corr']
+#         cake=cake/outDict['iso_corr']
     
     resfig=plt.figure('res')#results figure
     resfig.suptitle('%s, scanning %s, %i/%i events' %(basename,scanvar,numshots_used,numshots))
