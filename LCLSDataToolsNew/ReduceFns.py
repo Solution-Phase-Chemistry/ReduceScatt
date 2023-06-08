@@ -173,6 +173,7 @@ def saveDictionary(outpath,paramDict,outDict):
     
 def ReduceData(inDir,exper,runs,outDir,paramDict1,varDict):
     for run in runs:
+        plt.close('all')
         fname=inDir+exper+'_Run%04i.h5'%run
         paramDict=paramDict1.copy()
         print('loading ', fname)
@@ -353,17 +354,20 @@ def overviewPlot(figdir,paramDict,outDict):
         #qroi = np.arange(23,422)
         #print(qroi)   
         
-#     if enforce_iso: #if we are doing the iso correction:
-#         diff=diff/outDict['iso_corr']
-#         cake=cake/outDict['iso_corr']
+    # if enforce_iso: #if we are doing the iso correction:
+    #     diff=diff/outDict['iso_corr']
+    #     cake=cake/outDict['iso_corr']
     
-    resfig=plt.figure('res')#results figure
-    resfig.suptitle('%s, scanning %s, %i/%i events' %(basename,scanvar,numshots_used,numshots))
+   
     if aniso: #how many rows of plots will we need?
         nplot=4
     else:
         nplot=2
+    
+    resfig=plt.figure('res')
     resfig.clf()
+    resfig,resax=plt.subplots(nrows=nplot,ncols=2,num='res')#results figure
+    resfig.suptitle('%s, scanning %s, %i/%i events' %(basename,scanvar,numshots_used,numshots))
     resfig.set_size_inches(9, nplot*3)
     if show_svd:
         svdfig=plt.figure('svd')
@@ -376,24 +380,29 @@ def overviewPlot(figdir,paramDict,outDict):
     except:
         plot_2d(phis[:-1],qs,cake.T,fig='res',sub='%i21'%nplot,cb=False)
     if enforce_iso:
-        plt.ylabel('Q | slices, iso enforced')
+        plt.ylabel('Q ($\AA^{-1}$)')
+        resax[0,0].set_title('$S_{off}$, iso enforced ')
     else:
-        plt.ylabel('Q | azav slices')
-    plt.xlabel('phi')
+        plt.ylabel(' Q ($\AA^{-1}$) ')
+        resax[0,0].set_title('$S_{off}$')
+    resax[0,0].set_xlabel('phi (rad)')
+    
     
     ##### plot the average of each slice; should be flat
     ax2=plt.twinx()
     avg=np.nanmean(cake,1)
     ax2.plot(phis[:-1]+0.5*np.diff(phis),avg,'-o',color='w')
     ax2.set_ylim([0,np.nanmax(avg)])
+    ax2.set_ylabel('Ave Intensity')
     
     ##### plot the 1d average curve of the same
     plt.figure('res')
     plt.subplot(nplot,2,2)
     plt.plot(qs,np.nanmean(cake,0))
-    plt.xlabel('Q')
-    plt.ylabel('azav')
-
+    plt.xlabel('Q ($\AA^{-1}$)')
+    plt.ylabel('Intensity (arb. units)')
+    resax[0,1].set_title('$S_{off}$ azav')
+    
     print('plotting azavs')
     #xData=x[f_intens&f_lon]
 
@@ -418,9 +427,9 @@ def overviewPlot(figdir,paramDict,outDict):
     print(qs.shape)
     plot_2d(ts,qs[qroi],diff2d[:,qroi],fig='res',
             sub='%i23'%nplot,cb=False,logscan=logscan)
-    plt.ylabel('Q | with TT')
+    plt.ylabel('Q ($\AA^{-1}$)')
     plt.xlabel(x_lab)
-    
+    resax[1,0].set_title('$\Delta S$')
 
                      
 
@@ -430,13 +439,16 @@ def overviewPlot(figdir,paramDict,outDict):
         #plot every other time slice, DiffSig vs Q
         diff2d_bow=diff2d[everyother]
         plot_bow(qs[qroi],diff2d_bow[:,qroi],fig='res',sub=(nplot,2,4))
+        plt.ylabel('Diff Intensity (arb. units)')
+        resax[1,1].set_title('$\Delta S$ slices')
     else:
         plt.figure('res')
         slax=plt.subplot(nplot,2,4,sharex=ax3)
         plot_slice(ts,qs,diff2d,slice_plot,ax=slax,logscan=logscan)
         #plt.plot(ts,np.nanmean(diff2d[:,slice_plot],1),'o')
-        plt.ylabel('Signal at q=%s-%s'%(qs[slice_plot[0]],qs[slice_plot[-1]]))
-        plt.xlabel(x_lab)   
+        resax[1,1].set_title('$\Delta S$ at q=%.02f to %.02f $\AA^{-1}$'%(qs[slice_plot[0]],qs[slice_plot[-1]]))
+        plt.xlabel(x_lab)
+        plt.ylabel('Diff Intensity (arb. units)')
     
     
     if aniso:
@@ -449,20 +461,25 @@ def overviewPlot(figdir,paramDict,outDict):
         
         S0_bow = S0[everyother]
         plot_bow(qs[qroi],S0_bow[:,qroi],fig='res',sub=(4,2,6))
-        plt.ylabel('S0')
+        plt.ylabel('Diff Intensity (arb. units)')
+        resax[2,1].set_title('$\Delta S0$ slices')
         
         S2_bow = S2[everyother]
         plot_bow(qs[qroi],S2_bow[:,qroi],fig='res',sub=(4,2,8))
-        plt.ylabel('S2')
+        plt.ylabel('Diff Intensity (arb. units)')
+        resax[3,1].set_title('$\Delta S2$ slices')
         
         ax5 = plt.subplot(4,2,5,sharex=ax3,sharey=ax3)
         plot_2d(ts,qs[qroi],S0[:,qroi],fig='res',sub=(4,2,5),cb=False)
-        plt.ylabel('Q | S0')
+        plt.ylabel('Q ($\AA^{-1}$)')
         plt.xlabel(x_lab)
+        ax5.set_title('$\Delta S0$')
+        
         ax7 = plt.subplot(4,2,7,sharex=ax3,sharey=ax3)
         plot_2d(ts,qs[qroi],S2[:, qroi],fig='res',sub=(4,2,7),cb=False)
-        plt.ylabel('Q | S2')
+        plt.ylabel('Q ($\AA^{-1}$)')
         plt.xlabel(x_lab)
+        ax7.set_title('$\Delta S2$')
     
 
     
@@ -493,19 +510,16 @@ def overviewPlot(figdir,paramDict,outDict):
     plt.figure('res')
     plt.suptitle('%s, scanning %s, %i/%i events' %(basename,scanvar,numshots_used,numshots))
     plt.tight_layout()
-    plt.subplots_adjust(top=0.95)
+    # plt.subplots_adjust(top=0.95)
     plt.savefig(figdir+basename+'_result.png')   
 
 
     if show_svd:
         plt.figure('svd')
         plt.tight_layout()
-        plt.subplots_adjust(top=0.95)
+        # plt.subplots_adjust(top=0.95)
         svdfig.suptitle('SVD of %s, scanning %s, %i/%i events' %(basename,scanvar,numshots_used,numshots))
         plt.savefig('%s%s_SVD.png'%(figdir,basename))
         
     now = time.time() #Time after it finished
     print('done')
-        
-    
-        
