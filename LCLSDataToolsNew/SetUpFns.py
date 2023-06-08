@@ -378,3 +378,5 @@ def EnforceIso(paramDict,outDict):
     #corr_cspad=d['cspad']['azav']/corr
     
     outDict['iso_corr']=corr
+    outDict['h5Dict']['azav']=azav/corr
+    print('iso corr applied')
