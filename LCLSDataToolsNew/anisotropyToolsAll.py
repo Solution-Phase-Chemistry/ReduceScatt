@@ -15,6 +15,7 @@ from numpy.linalg import inv
 from numpy.linalg import lstsq
 from sklearn.linear_model import RANSACRegressor as RSC
 from sklearn.linear_model import LinearRegression as LR
+from multiprocessing import Pool
 
 
 
@@ -92,6 +93,78 @@ def S0S2(dat,phis,fil=None,shift_n=0,deg=None):
             err_S0[i,q,0]=lowerb
             err_S0[i,q,1]=upperb
     return S0, err_S0, S2, err_S2 #want t as first axis second, q as second
+
+
+
+
+def S0S2perT(cake,P2_cosphi):
+    S0=np.zeros((cake.shape[-1]))
+    S2=np.zeros((cake.shape[-1])) #S0 and S2 collapse shape of signal by 1 dimension
+    err_S2=np.zeros((cake.shape[-1],2))
+    err_S0=np.zeros((cake.shape[-1],2))
+    for q in range(0,cake.shape[-1]):
+        y=cake[:,q]
+        m,lowerm,upperm,b,lowerb,upperb=theil_sen_stats(y,P2_cosphi)
+        S0[q]=b
+        S2[q]=m
+        err_S2[q,0]=lowerm
+        err_S2[q,1]=upperm
+        err_S0[q,0]=lowerb
+        err_S0[q,1]=upperb
+        outfile={'S0':S0,'S2':S2,'err_S0':err_S0,'err_S2':err_S2}
+    return outfile
+
+
+def S0S2P(dat,phis,fil=None,shift_n=0,deg=None):
+    '''Calculate S0 and S2 for each point in dat, IN PARALLEL using multiprocessing. using linear fit of I[q] vs P2(cos(phi)). S0, S2 have same length as dat, if filter is used, only filter=True points are filled with data. 
+    If a shift was calculated using S0S2_check, use shift_n. 
+    deg: input angular shift in degrees.  This will be used instead of shift_n 
+    Returns S0, S0 confidence bounds, S2, S2 confidence bounds.'''
+    phis=phis[:-1] #hdf5 has one more phi point than slices (they are bin edges)
+    S0=np.zeros((dat.shape[0],dat.shape[2]))
+    S2=np.zeros((dat.shape[0],dat.shape[2])) #S0 and S2 collapse shape of signal by 1 dimension
+    err_S2=np.zeros((dat.shape[0],dat.shape[2],2))
+    err_S0=np.zeros((dat.shape[0],dat.shape[2],2))
+    
+    if deg is not None:
+        shift=deg*np.pi/180
+        print('shift is %i degrees' %deg) #ie phi zero is at this value
+    else:
+        shift=phis[shift_n]
+        print('shift is %i degrees' %(shift*180/np.pi))
+              
+    if not (fil is None):
+        numerator=np.where(fil)[1] #if a filter is provided, only iterate through interesting points
+    else:
+        numerator=range(0,dat.shape[0]) #otherwise iterate through all of them. 
+    P2_cosphi=(3*np.cos(phis-shift)**2-1)/2 #if we need to rotate, subtract the phi value of the nth phi
+    
+    print(len(numerator))
+    
+    pool = Pool(processes=20)
+    poolScan=range(len(numerator))
+    results=[]
+    for ii in poolScan:
+        results.append(pool.apply_async(S0S2perT,args=(dat[numerator[ii]],P2_cosphi)))
+    pool.close()
+    pool.join()
+    
+    for ii in poolScan:
+        Temp=results[ii].get()
+        S0[ii]=Temp['S0']
+        err_S0[ii]=Temp['err_S0']
+        S2[ii]=Temp['S2']
+        err_S2[ii]=Temp['err_S2']
+    return S0,err_S0,S2,err_S2
+        
+
+
+
+
+
+
+
+
 
 
 
