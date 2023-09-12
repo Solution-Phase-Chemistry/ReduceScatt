@@ -391,7 +391,8 @@ def overviewPlot(figdir,paramDict,outDict):
     ##### plot the average of each slice; should be flat
     ax2=plt.twinx()
     avg=np.nanmean(cake,1)
-    ax2.plot(phis[:-1]+0.5*np.diff(phis),avg,'-o',color='w')
+    ax2.plot(phis[:-1]+0.5*np.diff(phis),avg,'-o',
+             markerfacecolor='white',markeredgecolor='black',color='black')
     ax2.set_ylim([0,np.nanmax(avg)])
     ax2.set_ylabel('Ave Intensity')
     
@@ -409,7 +410,7 @@ def overviewPlot(figdir,paramDict,outDict):
 
     logscan=(np.abs(np.nanmax(ts)/np.nanmin(ts)))>1e3 # is the range we are scanning a lot of orders of magnitude? If so, plot nicer
     print('logscan '+str(logscan))
-    everyother=(np.arange(len(ts))%2==0)
+    everynth=(np.arange(len(ts))%10==0)
     diff2d=np.nanmean(diff,1)#average over phis
     if len(diff.shape)==2:
         diff2d=diff
@@ -437,8 +438,9 @@ def overviewPlot(figdir,paramDict,outDict):
     
     if slice_plot is None:
         #plot every other time slice, DiffSig vs Q
-        diff2d_bow=diff2d[everyother]
-        plot_bow(qs[qroi],diff2d_bow[:,qroi],fig='res',sub=(nplot,2,4))
+        diff2d_bow=diff2d[everynth]
+        # plot_bow(qs[qroi],diff2d_bow[:,qroi],fig='res',sub=(nplot,2,4))
+        plot_bow_offset(qs[qroi],diff2d_bow[:,qroi],fig='res',sub=(nplot,2,4))
         plt.ylabel('Diff Intensity (arb. units)')
         resax[1,1].set_title('$\Delta S$ slices')
     else:
@@ -459,13 +461,13 @@ def overviewPlot(figdir,paramDict,outDict):
         S0 = outDict['S0']
         S2=outDict['S2']
         
-        S0_bow = S0[everyother]
-        plot_bow(qs[qroi],S0_bow[:,qroi],fig='res',sub=(4,2,6))
+        S0_bow = S0[everynth]
+        plot_bow_offset(qs[qroi],S0_bow[:,qroi],fig='res',sub=(4,2,6))
         plt.ylabel('Diff Intensity (arb. units)')
         resax[2,1].set_title('$\Delta S0$ slices')
         
-        S2_bow = S2[everyother]
-        plot_bow(qs[qroi],S2_bow[:,qroi],fig='res',sub=(4,2,8))
+        S2_bow = S2[everynth]
+        plot_bow_offset(qs[qroi],S2_bow[:,qroi],fig='res',sub=(4,2,8))
         plt.ylabel('Diff Intensity (arb. units)')
         resax[3,1].set_title('$\Delta S2$ slices')
         
