@@ -37,7 +37,7 @@ def doAnisotropy(paramDict,outDict):
         qs=outDict['qs']
         phis=outDict['phis']
     
-    S0, err_S0, S2, err_S2=S0S2(ddata,phis,fil=None,shift_n=shift_n,deg=None)
+    S0, err_S0, S2, err_S2=S0S2P(ddata,phis,fil=None,shift_n=shift_n,deg=None)
     outDict.update({'S0':S0,'S0_err':err_S0,'S2':S2,'S2_err':err_S2})
         
 
