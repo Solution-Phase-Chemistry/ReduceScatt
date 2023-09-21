@@ -6,7 +6,10 @@ from scipy import interpolate as inp
 import warnings
 
 
-
+def chooseR(low,high,dataA):
+    ''' for 1D array dataA, returns indices for values of dataA within limits low, high.  Also returns low and high as a list '''
+    Inds=np.nonzero((low < dataA) & (dataA < high) ) [0] 
+    return Inds, (low,high)
 
 
 def find_nearest(array, value):
