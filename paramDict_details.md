@@ -66,6 +66,7 @@
 - None
 - 'SVD'  uses SVD correction on azimuthally averaged signal
 - 'SVDbyBin' uses SVD correction for each phi bin
+- 'poly' uses polynomial correction 
 ###### 'AdjSub' :  number of adjascent off shots to average and subtract
 - integer
 - -1 to subtract all off shots
