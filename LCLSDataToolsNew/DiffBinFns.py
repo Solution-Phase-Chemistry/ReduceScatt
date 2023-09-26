@@ -146,7 +146,11 @@ def NormalFactor(paramDict,outDict):
 #             print(f_loff)
     #early_x=(np.argsort(x)<300)&(f_intens&f_loff)
     # cake=np.nanmean(cspad_azav[early_x,:,:]/normal_factor[early_x,None,None],0) #normalize by norm 
-    cake=np.nanmean(divAny(cspad_azav[early_x,:,:],normal_factor[early_x,:]),0) #normalize by norm
+    try:
+        cake=np.nanmean(divAny(cspad_azav[early_x,:,:],normal_factor[early_x,:]),0) #normalize by norm
+    except:
+         cake=np.nanmean(divAny(cspad_azav[early_x,:,:],normal_factor[early_x]),0)
+    
     
     outDict['normal_factor']=normal_factor
     outDict['loff_cake']=cake
