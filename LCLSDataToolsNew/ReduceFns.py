@@ -399,7 +399,8 @@ def overviewPlot(figdir,paramDict,outDict):
     ##### plot the 1d average curve of the same
     plt.figure('res')
     plt.subplot(nplot,2,2)
-    plt.plot(qs,np.nanmean(cake,0))
+    plt.plot(qs,cake.T,'k--',alpha=0.2)
+    plt.plot(qs,np.nanmean(cake,0),lw=2)
     plt.xlabel('Q ($\AA^{-1}$)')
     plt.ylabel('Intensity (arb. units)')
     resax[0,1].set_title('$S_{off}$ azav')
