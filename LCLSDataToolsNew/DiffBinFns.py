@@ -67,6 +67,7 @@ def MakeScanAx(paramDict,outDict,tt_corrNew=None):
                         
             elif use_tt=='withlxt':
                 if tt_corrNew is not None:
+                    print('using tt_corrNew')
                     ttCorr=tt_corrNew[0]*outDict['h5Dict']['ttFLTPOS']+tt_corrNew[1]
                 try:
                     x=t0_corr+lxt+(enc+ttCorr)*1e-12
@@ -77,6 +78,7 @@ def MakeScanAx(paramDict,outDict,tt_corrNew=None):
             
             else: #want to use the timetool
                 if tt_corrNew is not None:
+                    print('using tt_corrNew')
                     ttCorr=tt_corrNew[0]*outDict['h5Dict']['ttFLTPOS']+tt_corrNew[1]
                     
                 x=t0_corr+(enc+ttCorr)*1e-12
