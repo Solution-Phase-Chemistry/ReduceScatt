@@ -164,7 +164,7 @@ def IscatFilters(paramDict,outDict):
     
         ##create filter on xray intensity keeping 80% of shots
     l,r,frac,f_Iscat=slice_histogram(Iscat,f_xon&(Iscat>Iscat_thresh),0.80, 
-                                      showplot=paramDict['show_filters'], fig='red', field='Iscat',sub=231)
+                                      showplot=paramDict['show_filters'], fig='red', field='Iscat',sub=221)
     outDict['filters']['f_Iscat']=f_Iscat
     outDict['filters']['f_good']=f_Iscat&f_xon ##formerly known as f_intens
     
@@ -320,6 +320,7 @@ def TTfilter(paramDict,outDict):
                                       0.999,showplot=showfilt,
                                       fig='red',field='TTamp',sub=234)
     print('TTAMP: fraction_kept ',frac,' lower ', l,' upper ',r)
+    plt.title('TTamp')
     
     FWHM_percent=0.99
     POS_percent=0.99
@@ -330,6 +331,7 @@ def TTfilter(paramDict,outDict):
                                       FWHM_percent,showplot=showfilt,
                                       fig='red',field='TTfwhm',sub=235)
     print('TTFWHM: fraction_kept ',frac,' lower ', l,' upper ',r)
+    plt.title('TTfwhm')
 
     ## filter based on TT position
     l,r,frac,f_ttpos=slice_histogram(ttpos,
@@ -337,6 +339,7 @@ def TTfilter(paramDict,outDict):
                                       POS_percent,showplot=showfilt,
                                      field='TTpos',fig='red',sub=236)
     print('TTPOS: fraction_kept ',frac,' lower ', l,' upper ',r)
+    plt.title('TTpos')
 
     ## save
     outDict['filters']['f_allTT']=f_ttpos&f_ttfwhm&f_ttamp2
@@ -349,8 +352,8 @@ def saveReduction(outDir,paramDict,outDict):
     plt.figure('red')
     plt.suptitle(basename)
     figdir = outDir + 'figures/'
-    plt.tight_layout()
-    plt.subplots_adjust(top=0.90)
+    # plt.tight_layout()
+    plt.subplots_adjust(top=0.90,wspace=0.5,hspace=0.5)
     plt.savefig(figdir+basename+'_reduction.png')   
     print('saved reduction.png')
     
