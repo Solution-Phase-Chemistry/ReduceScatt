@@ -164,7 +164,7 @@ def IscatFilters(paramDict,outDict):
     
         ##create filter on xray intensity keeping 80% of shots
     l,r,frac,f_Iscat=slice_histogram(Iscat,f_xon&(Iscat>Iscat_thresh),0.80, 
-                                      showplot=paramDict['show_filters'], fig='red', field='Iscat',sub=221)
+                                      showplot=paramDict['show_filters'], fig='red', field='Iscat',sub=231)
     outDict['filters']['f_Iscat']=f_Iscat
     outDict['filters']['f_good']=f_Iscat&f_xon ##formerly known as f_intens
     
@@ -302,8 +302,6 @@ def eBeamFilter(paramDict,outDict):
     
     
     
-
-
 def TTfilter(paramDict,outDict):
 
     ttfwhm=outDict['h5Dict']['ttFWHM']
@@ -314,29 +312,36 @@ def TTfilter(paramDict,outDict):
     f_good=outDict['filters']['f_good']
 
     ## filter on TT amplitude
+    f_ttamp=(ttamp>0.02) 
     
-    f_ttamp=(ttamp>0.02) #add this in if ttool seems suspect
+    #slice_histogram mainly to plot ttamp hist, f_ttamp is the important one
+    l,r,frac,f_ttamp2=slice_histogram(ttamp,
+                                      (f_lon&f_good&f_ttamp),
+                                      0.999,showplot=showfilt,
+                                      fig='red',field='TTamp',sub=234)
+    print('TTAMP: fraction_kept ',frac,' lower ', l,' upper ',r)
     
-    
+    FWHM_percent=0.99
+    POS_percent=0.99
 
     ##filter based on TT fwhm
     l,r,frac,f_ttfwhm=slice_histogram(ttfwhm,
-                                      f_lon&f_good&(ttfwhm>10)&(ttfwhm<300),
-                                      0.99,showplot=showfilt,fig='red',field='TTfwhm',sub=223)
+                                      f_lon&f_good&(ttfwhm>70)&(ttfwhm<150),
+                                      FWHM_percent,showplot=showfilt,
+                                      fig='red',field='TTfwhm',sub=235)
     print('TTFWHM: fraction_kept ',frac,' lower ', l,' upper ',r)
 
     ## filter based on TT position
     l,r,frac,f_ttpos=slice_histogram(ttpos,
                                       (f_good&f_ttamp&(ttpos>10)),
-                                      0.99,showplot=showfilt,field='TTpos',fig='red',sub=224)
+                                      POS_percent,showplot=showfilt,
+                                     field='TTpos',fig='red',sub=236)
     print('TTPOS: fraction_kept ',frac,' lower ', l,' upper ',r)
 
     ## save
-    outDict['filters']['f_allTT']=f_ttpos&f_ttfwhm&f_ttamp
-    outDict['filters']['f_lgood']=f_lon&f_ttpos&f_ttfwhm&f_ttamp
+    outDict['filters']['f_allTT']=f_ttpos&f_ttfwhm&f_ttamp2
+    outDict['filters']['f_lgood']=f_lon&f_ttpos&f_ttfwhm&f_ttamp2
     outDict['filters']['f_good']=(outDict['filters']['f_good']&outDict['filters']['f_loff'])|(outDict['filters']['f_good']&outDict['filters']['f_lgood']) #want f_intens to cut on timetool as well
-
-
 
 def saveReduction(outDir,paramDict,outDict):
     basename=outDict['h5name']
