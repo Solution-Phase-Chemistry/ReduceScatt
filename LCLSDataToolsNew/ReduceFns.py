@@ -411,7 +411,7 @@ def overviewPlot(figdir,paramDict,outDict):
 
     logscan=(np.abs(np.nanmax(ts)/np.nanmin(ts)))>1e3 # is the range we are scanning a lot of orders of magnitude? If so, plot nicer
     print('logscan '+str(logscan))
-    everynth=(np.arange(len(ts))%10==0)
+    everynth=(np.arange(len(ts))%2==0)
     diff2d=np.nanmean(diff,1)#average over phis
     if len(diff.shape)==2:
         diff2d=diff
