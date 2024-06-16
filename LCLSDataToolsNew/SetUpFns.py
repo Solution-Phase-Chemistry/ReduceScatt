@@ -312,7 +312,8 @@ def TTfilter(paramDict,outDict):
     f_good=outDict['filters']['f_good']
 
     ## filter on TT amplitude
-    f_ttamp=(ttamp>0.02) 
+    f_ttamp=(ttamp>0.002)  #ccm
+    # f_ttamp=(ttamp>0.02)  #SASE
     
     #slice_histogram mainly to plot ttamp hist, f_ttamp is the important one
     l,r,frac,f_ttamp2=slice_histogram(ttamp,
