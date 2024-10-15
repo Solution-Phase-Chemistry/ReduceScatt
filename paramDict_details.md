@@ -81,8 +81,8 @@
 ###### 'aniso' : calculate anisotropy?
 - True
 - False
-###### 'shift_n' : phi offset for anisotrpoy calculation in bins
-- integer 
+###### 'shift_deg' : phi offset for anisotrpoy calculation in degrees
+- float
 ###### 'xstat' : calculate mean and standard deviation for x-axis during binning step?
 - True
 - False
