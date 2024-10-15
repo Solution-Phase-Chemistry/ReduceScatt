@@ -10,6 +10,7 @@ from scipy.special import legendre
 from scipy.integrate import simpson, trapezoid
 # from scipy.linalg import lstsq
 from scipy import interpolate as inp
+from LCLSDataToolsNew.GeneralTools import *
 from LCLSDataToolsNew.plottingTools import *
 from numpy.linalg import inv
 from numpy.linalg import lstsq
@@ -323,17 +324,18 @@ def S0S2WT(dat,phis,weights=None, fil=None,shift_n=0,deg=None,thresh=10):
 
 
               
-def S0S2_check(dat,qs,phis,trange='All',lim=None,calc2=False):
+def S0S2_check(dat,phis,qs,trange='All',lim=None,calc2=False):
     '''Average the data IN TIME and plot the S0 and S2, with uncertainties from T-S estimator, 
     with phi0 rotating around the full circle. 
     Checks whether phi=0 is in the right place to see maximum anisotropic signal.
-    trange= array of time bins to average
+    trange= (low,high) range of time to integrage
     lim= sets y limits of S2 plots'''
     
     if trange=='All':
         cake=np.nanmean(dat,0)
     else:
-        cake=np.nanmean(dat[trange,:,:],0)
+        goodt,_=chooseR(trange[0],trange[1],ts)
+        cake=np.nanmean(dat[goodt,:,:],0)
                         
      
                         
@@ -418,51 +420,47 @@ def S0S2_check(dat,qs,phis,trange='All',lim=None,calc2=False):
     return all_S0, all_S2
               
               
-def S0S2_Fine(dat,qs,phis,shiftLim=(0,360),step=10,trange='All',lim=None):
+def S0S2_checkD(dat,phis,qs,ts,shiftRange=(0,360),dshift=10,trange='All',lim=None):
     '''Average the data IN TIME and plot the S0 and S2, with uncertainties from T-S estimator, 
     with phi0 rotating around the full circle. (ie, steps are user deterined, not equal to number of phi bins)
     Checks whether phi=0 is in the right place to see maximum anisotropic signal.
     shiftLim=range of angles to scan, in degrees
     step=step size of angle scan, in degrees
-    trange= array of time bins to average
+    trange= (low, high) of trange to use
     lim= sets y limits of S2 plots'''
     
     if trange=='All':
         cake=np.nanmean(dat,0)
     else:
-        cake=np.nanmean(dat[trange,:,:],0)
+        goodt,_=chooseR(trange[0],trange[1],ts)
+        cake=np.nanmean(dat[goodt,:,:],0)
                         
      
                         
     phis=phis[:-1] #hdf5 has one more phi point than slices (they are bin edges)
     ylow=0
     yhigh=0
-    
 
     
-    shifts=np.arange(shiftLim[0]*np.pi/180,shiftLim[1]*np.pi/180,(step*np.pi/180))
+    shifts=np.arange(shiftRange[0]*np.pi/180,shiftRange[1]*np.pi/180,(dshift*np.pi/180))
+    shifts_d=shifts*180/np.pi
     all_S0=np.zeros((len(shifts),len(qs)))
-    all_S2=np.zeros((len(shifts),len(qs)))
-   
+    all_S2=np.zeros((len(shifts),len(qs))) 
                     
-    for i,ss in enumerate(shifts):
-        P2_cosphi=(3*np.cos(phis-ss)**2-1)/2
-        S0=np.zeros(cake.shape[1])
-        S2=np.zeros(cake.shape[1])
-        conf_m=np.zeros((cake.shape[1],2))
-        conf_b=np.zeros((cake.shape[1],2))
-        for q in range(0,cake.shape[1]):
-            y=cake[:,q]
-            m,lowerm,upperm,b,lowerb,upperb=theil_sen_stats(y,P2_cosphi)
-            S0[q]=b
-            S2[q]=m
-            conf_m[q,0]=lowerm
-            conf_m[q,1]=upperm
-            conf_b[q,0]=lowerb
-            conf_b[q,1]=upperb
-            
-        all_S0[i,:]=S0
-        all_S2[i,:]=S2
+    
+    pool = Pool(processes=20)
+    poolScan=range(len(shifts))
+    results=[]
+    for ii in poolScan:
+        results.append(pool.apply_async(S0S2perT,args=(cake,(3*np.cos(phis-shifts[ii])**2-1)/2)))
+    pool.close()
+    pool.join()
+    
+    for ii in poolScan:
+        Temp=results[ii].get()
+        all_S0[ii,:]=Temp['S0']
+        all_S2[ii,:]=Temp['S2']
+        
         
 #         plt.figure('shift %i'%i)
         #plt.title('shift %i'%i)
@@ -471,26 +469,26 @@ def S0S2_Fine(dat,qs,phis,shiftLim=(0,360),step=10,trange='All',lim=None):
         
         
         
-        
+
         plt.figure('all S0 trace')
-        plt.errorbar(qs,S0, yerr=[S0-conf_b[:,0],conf_b[:,1]-S0], fmt='--o',label='shift %i rad'%i)
+        plt.plot(qs,all_S0[ii],'--o',label='shift %i deg'%shifts_d[ii])
         plt.legend()
         plt.xlabel('Q ($\AA^{-1}$)')
         plt.ylabel('I (arb)')
 
         plt.figure('all S2 trace')
-        plt.errorbar(qs,S2, yerr=[S2-conf_m[:,0],conf_m[:,1]-S2], fmt='--o',label='shift %i rad'%i)
+        plt.plot(qs,all_S2[ii],'--o',label='shift %i deg'%shifts_d[ii])
         plt.legend()
         plt.xlabel('Q ($\AA^{-1}$)')
         plt.ylabel('I (arb)')
-        
 
-        ax=plt.gca()
-        yl,yh=ax.get_ylim()
-        if yh>yhigh:
-            yhigh=yh
-        if yl<ylow:
-            ylow=yl
+
+    ax=plt.gca()
+    yl,yh=ax.get_ylim()
+    if yh>yhigh:
+        yhigh=yh
+    if yl<ylow:
+        ylow=yl
             
     
     plt.figure('all S2 trace')
@@ -501,37 +499,174 @@ def S0S2_Fine(dat,qs,phis,shiftLim=(0,360),step=10,trange='All',lim=None):
             
 
 
-    shifts=shifts*180/np.pi
-    print(shifts.shape)
-    plot_2d(shifts,qs,all_S0,fig='all S0',cb=True)
+  
+    print(shifts_d.shape)
+    plot_2d(shifts_d,qs,all_S0,fig='all S0',cb=True)
     plt.ylabel('q')
     plt.xlabel('phi shift (degrees)')
     plt.suptitle('all S0')
 #     plt.xticks(np.arange(len(shifts))+1)
     
-    plot_2d(shifts,qs,all_S2,fig='all S2',cb=True)
+    plot_2d(shifts_d,qs,all_S2,fig='all S2',cb=True)
     plt.ylabel('q')
     plt.xlabel('phi shift (degrees)')
     plt.suptitle('all S2')
 #     plt.xticks(np.arange(len(shifts))+1)
     
     
-    return all_S0, all_S2
-              
-              
-              
-              
-              
-              
-              
-              
-              
+    return all_S0, all_S2, shifts_d
               
               
               
               
               
 
+            
+      
+    
+    
+            
+            
+            
+def S0S2lab(data,phis,qs,Xray_keV,shift_deg=0):
+    ''' data = phi x q '''
+    shift=shift_deg*np.pi/180
+    # print('shift is %i degrees' %shift_deg)
+    # cosThetAll=np.full_like(qs,np.nan)
+    S0=np.full_like(qs,np.nan)
+    S2=np.full_like(qs,np.nan)
+    err_S0=np.full((qs.shape[0],2),np.nan)
+    err_S2=np.full((qs.shape[0],2),np.nan)
+    for ii,q in enumerate(qs):
+        lamX=1239.8/(Xray_keV*1000)*10
+        cosThet=np.sqrt(1-(lamX*q/4/np.pi)**2)
+        P2=(3*(-1*cosThet*np.cos(phis-shift))**2-1)/2
+        m,lowerm,upperm,b,lowerb,upperb=theil_sen_stats(data[:,ii],P2)
+        # cosThetAll[ii]=cosThet
+        S0[ii]=b
+        S2[ii]=m
+        err_S2[ii,0]=lowerm
+        err_S2[ii,1]=upperm
+        err_S0[ii,0]=lowerb
+        err_S0[ii,1]=upperb
+    outfile={'S0':S0,'S2':S2,'err_S0':err_S0,'err_S2':err_S2}
+    return outfile
+
+def S0S2labT(data,phis,qs,Xray_keV,shift_deg=0):
+    '''data=ts x phis x qs'''
+    # cosThetAll=np.full((data.shape[0],qs.shape[0]),np.nan)
+    S0=np.full((data.shape[0],qs.shape[0]),np.nan)
+    S2=np.full((data.shape[0],qs.shape[0]),np.nan)
+    err_S0=np.full((data.shape[0],qs.shape[0],2),np.nan)
+    err_S2=np.full((data.shape[0],qs.shape[0],2),np.nan)
+    
+    pool = Pool(processes=10)
+    poolScan=range(data.shape[0])
+    results=[]
+    for jj in poolScan:
+        results.append(pool.apply_async(S0S2lab,args=(data[jj,:,:],phis,qs,Xray_keV,shift_deg)))
+    pool.close()
+    pool.join()
+    
+    for jj in poolScan:
+        Temp=results[jj].get()
+        # cosThetAll[jj]=Temp['cosThetAll']
+        S0[jj]=Temp['S0']
+        err_S0[jj]=Temp['err_S0']
+        S2[jj]=Temp['S2']
+        err_S2[jj]=Temp['err_S2']
+    outfile={'S0':S0,'S2':S2,'err_S0':err_S0,'err_S2':err_S2}
+    return outfile           
+            
+def S0S2_checklab(data,phis,qs,ts, Xray_keV,shiftRange=(0,180),dshift=10,trange='All'):
+    ''' code for S0S2 check with lab frame parameters
+    tRange = (low,high) in smae units as ts
+    shiftRange = in degrees
+    dshift=delta shift in degrees
+    '''
+    if trange=='All':
+        goodt=np.arange(ts.shape[0])
+    else:
+        goodt,_=chooseR(trange[0],trange[1],ts)
+    dataT=np.nansum(data[goodt,:,:],axis=0)
+    # print(dataT.shape)
+    
+    shiftL=np.arange(shiftRange[0],shiftRange[1],dshift)
+    
+    allS0=np.full((shiftL.shape[0],dataT.shape[1]),np.nan)
+    allS2=np.full((shiftL.shape[0],dataT.shape[1]),np.nan)
+    
+    pool = Pool(processes=10)
+    poolScan=range(len(shiftL))
+    results=[]
+    for jj in poolScan:
+        results.append(pool.apply_async(S0S2lab,args=(dataT,phis,qs,Xray_keV,shiftL[jj])))
+    pool.close()
+    pool.join()
+    
+    for i in poolScan:
+        temp=results[i].get()
+        allS0[i,:]=temp['S0']
+        allS2[i,:]=temp['S2']
+        
+    plot_2d(shiftL,qs,allS0,fig='check',sub=211)
+    plt.title('S0')
+    plt.xlabel('shift (deg)')
+    plot_2d(shiftL,qs,allS2,fig='check',sub=212)
+    plt.title('S2')
+    plt.xlabel('shift (deg)')
+    plt.tight_layout()
+    
+    plt.figure()
+    plt.subplot(1,2,1)
+    plt.plot(qs,allS0.T)
+    plt.title('all S0')
+    plt.xlabel('Q ($\AA^{-1}$)')
+    plt.subplot(1,2,2)
+    plt.plot(qs,allS2.T)
+    plt.title('all S2')
+    plt.xlabel('Q ($\AA^{-1}$)')
+    plt.tight_layout()
+    
+    return allS0,allS2,shiftL          
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+              
+              
+              
+              
+              
+              
+              
 
 def S0S2Int(data,qs,phisIn,shift_n=0):
     '''Based on Michael Chen's method. where data has dimensions t x phi x qs. 
@@ -662,7 +797,7 @@ def Sn_check(nn,dat,qs,phis,trange='All',lim=None,shifts='All'):
     with phi0 rotating around the full circle. 
     Using Michael Chen integration method. 
     Checks whether phi=0 is in the right place to see maximum anisotropic signal.
-    trange= array of time bins to average
+    trange= (low,high) trange to integrate
     lim= sets y limits of S2 plots
     shifts='All' try all shift_n 
     shifts=list-like :  try shift_n in list'''
@@ -670,7 +805,9 @@ def Sn_check(nn,dat,qs,phis,trange='All',lim=None,shifts='All'):
     if trange=='All':
         cake=np.nanmean(dat,0)
     else:
-        cake=np.nanmean(dat[trange,:,:],0).squeeze()
+        goodt,_=chooseR(trange[0],trange[1],ts)
+        cake=np.nanmean(dat[goodt,:,:],0)
+        
     data=cake
                         
     phis=phis[:-1] #hdf5 has one more phi point than slices (they are bin edges)
@@ -753,7 +890,7 @@ def Sn_check(nn,dat,qs,phis,trange='All',lim=None,shifts='All'):
               
               
               
-def SnFit(nn,data,qs,phisIn,lam,shift_n=0):
+def SnFit(nn,data,qs,phisIn,Xray_keV,shift_n=0):
     '''based on Adi Natan method (see https://github.com/adinatan/AnalyzeScatteringSignal/blob/master/LDSD.m, 
     DOI: 10.1039/D0FD00126K)
        for equally spaced q and phi bins (ie same number of phi bins for each q),
@@ -761,10 +898,13 @@ def SnFit(nn,data,qs,phisIn,lam,shift_n=0):
            Data=S0*P0(cos(phi))+...+Sn*Pn(cos(phi))
        nn=int fits all even orders up to nn (ie nn=2 calculates S0,S2).
        if nn=list then fits only orders specified
+       Xray_keV= X-ray photon energy in keV
        lam= input x-ray wavelength in angstroms
        Data has dimensions phis x qs.
        b_All=dimensionless, scaled beta values (B0*b_All=beta values)
        b_Res=sums of squared residuals'''
+    
+    lam=1239.8/(Xray_keV*1000)*10
     
     #shift phis
     phis=phisIn.copy()
@@ -825,9 +965,11 @@ def SnFit(nn,data,qs,phisIn,lam,shift_n=0):
     return Outfile
 
 
-def SnFitT(nn,data1,qs,phisIn,lam,shift_n=0):
+def SnFitT(nn,data1,qs,phisIn,Xray_keV,shift_n=0):
     '''SnFit but with data that has dimensions txphixq, returns txqxnn array'''
 
+    lam=1239.8/(Xray_keV*1000)*10
+    
     #shift phis
     phis=phisIn.copy()
     shift=phis[shift_n]
@@ -868,7 +1010,7 @@ def SnFitT(nn,data1,qs,phisIn,lam,shift_n=0):
             Ytemp=dNorm[:,ii]
 
             #get rid of nan values
-            Ind2=np.nonzero(~np.isnan(Ytemp))
+            Ind2=np.nonzero(~np.isnan(Ytemp))[0]
             YY=Ytemp[Ind2]
 
             #write function
@@ -876,7 +1018,7 @@ def SnFitT(nn,data1,qs,phisIn,lam,shift_n=0):
                 legn=legendre(lN)
                 Amat[:,jj]=legn(np.cos(phis))
     #         b_coeff=inv(Amat.T@Amat)@Amat.T@Ytemp #manually solve
-            AA=Amat[Ind2,:].squeeze()    
+            AA=Amat[Ind2,:]   
             b_coeff,b_res1= lstsq(AA,YY)[:2]
             b_All[ii,:]=b_coeff
             try:

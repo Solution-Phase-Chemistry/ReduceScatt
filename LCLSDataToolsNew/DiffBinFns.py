@@ -445,7 +445,8 @@ def SVDcorrection(data,var1,qs,filt=None,n=1,binp=100,poly=2):
     onData=onData[filt&~np.isnan(var1)]
     
     #bin data wrt var1
-    outfile=BinStat(xData,onData,binp,yerr=None,binByPoints=True,showplot=False,set_bins=None,count=True, xstat=True)
+    outfile=BinStat(xData,onData,binp,yerr=None,binByPoints=True,
+                    showplot=False,set_bins=None,count=True, xstat=True)
     xBin=outfile['xcenter']
     dBin=outfile['binmean']
     
@@ -481,7 +482,8 @@ def SVDcorrectionByBin(data,var1,qs,filt=None,n=1,binp=100,poly=2):
     onData=data[filt&~np.isnan(var1)]
     
     #bin data wrt var1
-    outfile=BinStat(xData,onData,binp,yerr=None,binByPoints=True,showplot=False,set_bins=None,count=True, xstat=True)
+    outfile=BinStat(xData,onData,binp,yerr=None,binByPoints=True,
+                    showplot=False,set_bins=None,count=True, xstat=True)
     xBin=outfile['xcenter']
     dBin=outfile['binmean']
 
@@ -506,6 +508,3 @@ def SVDcorrectionByBin(data,var1,qs,filt=None,n=1,binp=100,poly=2):
     return corr3D    
 
 
-
-
- 

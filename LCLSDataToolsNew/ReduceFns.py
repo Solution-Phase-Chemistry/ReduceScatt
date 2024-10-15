@@ -28,7 +28,7 @@ from LCLSDataToolsNew.DiffBinFns import *
 
 def doAnisotropy(paramDict,outDict):
     print('start anisotropy')
-    shift_n=paramDict['shift_n']
+    shift_n=paramDict['shift_deg']
     ddata=outDict['diff_bin']
     try:
         qs=outDict['h5Dict']['qs']
@@ -37,7 +37,7 @@ def doAnisotropy(paramDict,outDict):
         qs=outDict['qs']
         phis=outDict['phis']
     
-    S0, err_S0, S2, err_S2=S0S2P(ddata,phis,fil=None,shift_n=shift_n,deg=None)
+    S0, err_S0, S2, err_S2=S0S2P(ddata,phis,fil=None,shift_n=0,deg=shift_deg)
     outDict.update({'S0':S0,'S0_err':err_S0,'S2':S2,'S2_err':err_S2})
         
 
@@ -227,99 +227,7 @@ def ReduceData(inDir,exper,runs,outDir,paramDict1,varDict):
         
         
         
-        
-        
-def StackProccessed(inpath,exper,runs,base=None, method='bincount'):
-    ''' for runs in experiment, load .npy files from inpath and stack runs using method specified.
-    Methods that return average signal per t bin:
-    'bincount' = weigh each run by number of shots per bin and sum, then divide by total shots in bin
-    'WAve' = weighted average for each bin using bin_err
-    Methods that return total signal per t bin:
-    'Sum' = just sum values for each t bin
-    
-    base=None or base='_01' for inpath+exper+'_Run%04i_01_out.npy' etc 
-    '''
-    
-    ## load data
-    AllData=[]
-    AllTs=[]
-    AllQs=[]
-    AllPhis=[]
-    AllBC=[]
-    AllErr=[]
-    for run in runs:
-        if base is None:
-            data1=np.load(inpath+exper+'_Run%04i_out.npy'%run,allow_pickle=True).item()
-        else:
-            data1=np.load(inpath+exper+'_Run%04i'%run+base+'_out.npy',allow_pickle=True).item()
-        AllData.append(data1['diff_bin'])
-        AllTs.append(data1['xcenter'])
-        AllQs.append(data1['qs'])
-        AllPhis.append(data1['phis'])
-        AllBC.append(data1['xbin_occupancy'])
-        if method=='WAve':
-            AllErr.append(data1['diff_std'])
-        
-        
-    ## check that all ts and qs are the same or throw error
-    try: 
-        AllTs=np.array(AllTs,dtype=float)
-        ts=np.unique(AllTs,axis=0).squeeze()
-        assert len(ts.shape)==1
-    except:
-        print('more than one unique t axis')
 
-    try:
-        AllQs=np.array(AllQs,dtype=float)
-        qs=np.unique(AllQs,axis=0).squeeze()
-        assert len(qs.shape)==1
-    except:
-        print('more than one unique q axis')
-        
-    try:
-        AllPhis=np.array(AllPhis,dtype=float)
-        phis=np.unique(AllPhis,axis=0).squeeze()
-        assert len(phis.shape)==1
-    except:
-        print('more than one unique phi axis')
-
-    AllData=np.array(AllData) # runs x ts x phis x qs array
-    AllBC=np.array(AllBC) #runs x ts 
-    
-    ##  weigh each run by number of shots per bin and sum, then divide by total shots in bin
-    if method=='bincount':
-        AllD2=divAny(AllData,1/AllBC,axis=(2,3,0,1)) ## multiply sig/shot and BC (shots/bin)
-        sumD=np.nansum(AllD2,axis=0) ##total signal for each bin
-        sumBC=np.nansum(AllBC,axis=0) ##total shots per bin
-        aveD=divAny(sumD,sumBC,axis=(1,2,0)) #average signal per shot per bin
-        aveD[np.nonzero(sumBC==0),:,:]=np.nan
-        
-        #standard error= sqrt((sum(bc_i*(x_i-<x>)**2))/(sum(bc_i-1)*sum(bc_i)))
-        AllErr1=divAny((AllData-aveD)**2,1/AllBC,axis=(2,3,0,1))
-        sumAE1=np.nansum(AllErr1,axis=0)
-        ssBC=(sumBC-1)*(sumBC)
-        AllErr2=divAny(sumAE1,ssBC,axis=(1,2,0))
-        Derr=np.sqrt(AllErr2)
-        Derr[np.nonzero(sumBC==0),:,:]=np.nan
-    
-        
-        stackDict={'aveData':aveD,'errData':Derr,'sumBC':sumBC,'ts':ts,'qs':qs,'phis':phis,'runs':runs,'method':method}
-        return stackDict
-    
-    if method=='WAve':
-        AllErr=np.array(AllErr)
-        aveD,Derr=WAve(AllData,AllErr,axis=0)
-        stackDict={'aveData':aveD,'errData':Derr,'ts':ts,'qs':qs,'phis':phis,'runs':runs,'method':method}
-        return stackDict
-    
-    if method=='Sum':
-        sumD=np.nansum(AllData,axis=0)
-        sumBC=np.nansum(AllBC,axis=0) ##total shots per bin
-        stackDict={'sumData':sumD,'sumBC':sumBC,'ts':ts,'qs':qs,'phis':phis,'runs':runs,'method':method}
-        return stackDict
-        
-    
-    
     
         
         
@@ -411,7 +319,7 @@ def overviewPlot(figdir,paramDict,outDict):
 
     logscan=(np.abs(np.nanmax(ts)/np.nanmin(ts)))>1e3 # is the range we are scanning a lot of orders of magnitude? If so, plot nicer
     print('logscan '+str(logscan))
-    everynth=(np.arange(len(ts))%2==0)
+    everynth=(np.arange(len(ts))%5==0)
     diff2d=np.nanmean(diff,1)#average over phis
     if len(diff.shape)==2:
         diff2d=diff
