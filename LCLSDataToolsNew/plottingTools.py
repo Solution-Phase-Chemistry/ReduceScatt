@@ -118,7 +118,7 @@ def plot_bow_offset(x,ys,times=None,fig=None,sub='111'):
     else:
         plt.yticks([])
 
-def plot_2d(t,x,ys,fig=None,sub='111',cb=True,logscan=False,ccmap='rainbow'):
+def plot_2d(t,x,ys,fig=None,sub='111',cb=True,logscan=False,ccmap='viridis'):
     '''plot ys[N,M] on time [M] vs q [N] axes
     cb=True: add colorbar'''
 
@@ -158,7 +158,7 @@ def plot_2d(t,x,ys,fig=None,sub='111',cb=True,logscan=False,ccmap='rainbow'):
     plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))        
         
 
-def plot_2d_v2(ys,t=None,q=None,fig=None,sub='111',cb=True,logscan=False,ccmap='rainbow'):
+def plot_2d_v2(ys,t=None,q=None,fig=None,sub='111',cb=True,logscan=False,ccmap='viridis'):
     '''plot ys[N,M] on time [M] vs q [N] axes; don't need t and q vectors if you don't want them
     cb=True: add colorbar'''
 
