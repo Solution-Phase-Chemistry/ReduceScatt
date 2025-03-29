@@ -380,13 +380,13 @@ def overviewPlot(figdir,paramDict,outDict):
         plt.ylabel('Diff Intensity (arb. units)')
         resax[3,1].set_title('$\Delta S2$ slices')
         
-        ax5 = plt.subplot(4,2,5,sharex=ax3,sharey=ax3)
+        ax5 = plt.subplot(4,2,5)
         plot_2d(ts,qs[qroi],S0[:,qroi],fig='res',sub=(4,2,5),cb=False)
         plt.ylabel('Q ($\AA^{-1}$)')
         plt.xlabel(x_lab)
         ax5.set_title('$\Delta S0$')
         
-        ax7 = plt.subplot(4,2,7,sharex=ax3,sharey=ax3)
+        ax7 = plt.subplot(4,2,7)
         plot_2d(ts,qs[qroi],S2[:, qroi],fig='res',sub=(4,2,7),cb=False)
         plt.ylabel('Q ($\AA^{-1}$)')
         plt.xlabel(x_lab)
