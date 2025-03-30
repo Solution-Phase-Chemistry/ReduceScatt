@@ -282,7 +282,7 @@ def doDifference(paramDict,outDict):
     print('starting difference signal')
     
     adj_subtr=paramDict['AdjSub']
-    cake=outDict['loff_cake']
+    cake=outDict['loff_cake_norm']
     cspad_azav=outDict['h5Dict']['azav']
     normal_factor=outDict['normal_factor']
     f_intens=outDict['filters']['f_good']
@@ -309,7 +309,7 @@ def doDifference(paramDict,outDict):
     
     outDict['x_Data']=x[f_intens&f_lon]
     outDict['diff_Data']=diff[f_intens&f_lon]
-    outDict['loff_cake']=cake/totaloff
+    # outDict['loff_cake_norm']=cake/totaloff
     
     print('Difference Signal Done!')
     
