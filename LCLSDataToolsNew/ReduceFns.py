@@ -434,3 +434,21 @@ def overviewPlot(figdir,paramDict,outDict):
         
     now = time.time() #Time after it finished
     print('done')
+
+def letsFilter(inDir,exper,run,outDir,paramDict1,varDict):
+    ''' only run the filtering steps of ReduceData to set parameters.  Does not save plots or anything. Only processes one run at a time.'''
+    plt.close('all')
+    fname=inDir+exper+'_Run%04i.h5'%run
+    paramDict=paramDict1.copy()
+    print('loading ', fname)
+    outDict={}
+    then=time.time()
+    LoadH5(fname,outDir,varDict,paramDict, outDict)
+    # MaskAzav(paramDict,outDict,listBinInd=np.array([[0,0],[6,425],[6,400],[6,401]]))
+    setupFilters(paramDict,outDict)
+    IscatFilters(paramDict,outDict)
+    # eBeamFilter(paramDict,outDict)
+    if paramDict['use_TT'] is not False:
+        TTfilter(paramDict,outDict)
+    now = time.time() #Time after it finished
+    print(now-then, " seconds")
