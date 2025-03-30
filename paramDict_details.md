@@ -46,7 +46,7 @@
 ###### 'slope_filter': whether to filter on Iscat vs I0 correlation slope, will overrule 'corr_filter' settings if True
 - True
 - False
-###### 'slope_param': slope and intercept for filter line.  everything below line will be thrown out
+###### 'slope_param': slope and intercept for slope filter line.  everything below line will be thrown out
 - (float,float)
 
 
