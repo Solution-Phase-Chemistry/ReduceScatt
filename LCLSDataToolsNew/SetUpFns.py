@@ -180,7 +180,35 @@ def IscatFilters(paramDict,outDict):
     outDict['filters']['f_Ipm']=f_Ipm
     outDict['filters']['f_good']=outDict['filters']['f_good'] & f_Ipm
     
-    if paramDict['corr_filter']:
+    if (paramDict['corr_filter'] & paramDict['slope_filter']):
+        paramDict['slope_filter']==False
+        
+    if paramDict['slope_filter']:
+        
+         ##set ipm thresholds
+        # ipmkey='ipm'+str(paramDict['ipm'])
+        # ipmi=outDict['h5Dict'][ipmkey]
+        ipmfilt=np.full_like(ipmi,1)
+        if paramDict['ipm_filter'][0] != None:
+            ipmfilt=np.logical_and((ipmfilt),(ipmi>ipm_thresh[0]))
+        if paramDict['ipm_filter'][1] != None:
+            ipmfilt=np.logical_and((ipmfilt),(ipmi<ipm_thresh[1]))
+        
+        nanfilt=~np.isnan(Iscat)&~np.isnan(ipmi)&(ipmfilt)&(Iscat>Iscat_thresh)
+        
+        
+        f_slope=slope_filter(ipmi, Iscat,nanfilt, 
+                             paramDict['slope_param'][0], intercept=paramDict['slope_param'][1])
+        # print(f_slope)
+        
+        outDict['filters']['f_slope']=f_slope
+        outDict['filters']['f_good']=outDict['filters']['f_good'] & f_slope
+        
+        print('slope filter done!')
+        
+    
+    
+    elif paramDict['corr_filter']:
         print('making correlation filter')
         
         thresh=paramDict['corr_threshold']
@@ -196,7 +224,6 @@ def IscatFilters(paramDict,outDict):
         
     
         ## correlation filter of ipm vs Isum
-        # thresh=30
         
         #RANSAC fit to line
         nanfilt=~np.isnan(Iscat)&~np.isnan(ipmi)&(ipmfilt)&(Iscat>Iscat_thresh)
@@ -236,11 +263,24 @@ def IscatFilters(paramDict,outDict):
         plt.figure('red')
         plt.subplot(2,2,2)
         if paramDict['corr_filter']:
-            plt.hist2d(ipmi[nanfilt].squeeze(),Iscat[nanfilt].squeeze(),100,cmap='Greys',
-                       norm=mpl.colors.SymLogNorm(linthresh=1, linscale=1))
-            plt.scatter(ipm1[in_mask],Isum1[in_mask],marker='.',color='blue',alpha=.1)
+            # plt.hist2d(ipmi[nanfilt].squeeze(),Iscat[nanfilt].squeeze(),100,cmap='Greys',
+            #            norm=mpl.colors.SymLogNorm(linthresh=1, linscale=1))
+            plt.scatter(ipm1[~in_mask],Isum1[~in_mask],marker='.',color='black',alpha=.05)
+            plt.scatter(ipm1[in_mask],Isum1[in_mask],marker='x',color='blue',alpha=.05)
             plt.plot(ipm1[in_mask],line_y,color='r')
             plt.xlim(left=0)
+        elif paramDict['slope_filter']:
+            nanfilt=~np.isnan(Iscat)&~np.isnan(ipmi)
+            plt.hist2d(ipmi[nanfilt].squeeze(),Iscat[nanfilt].squeeze(),100,cmap='Greys',
+                       norm=mpl.colors.SymLogNorm(linthresh=1, linscale=1))
+            
+            # plt.scatter(ipmi[~f_slope],Iscat[~f_slope],marker='.',color='black',alpha=.01)
+            # plt.scatter(ipmi[f_slope],Iscat[f_slope],marker='x',color='blue',alpha=.01)
+            slopex=np.arange(np.nanmin(ipmi),np.nanmax(ipmi),1)
+            slopeline=paramDict['slope_param'][0]*slopex+paramDict['slope_param'][1]
+            plt.plot(slopex,slopeline,color='r')
+            plt.fill_between(slopex,slopeline,color='r',alpha=.1)
+            
         else:
             nanfilt=~np.isnan(Iscat)&~np.isnan(ipmi)
             plt.hist2d(ipmi[nanfilt].squeeze(),Iscat[nanfilt].squeeze(),100,cmap='Greys',

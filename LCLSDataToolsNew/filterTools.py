@@ -93,9 +93,28 @@ def slice_histogram(dat,fil,threshold,res=100,showplot=False,field='unknown',fig
     return bins[current_left], bins[current_right],fraction_in,filter_out
 
 
+
+
+def slope_filter(xin, yin,fil, slope, intercept=0):
+    f_slope=np.full_like(yin,False)
+    slope_in=np.full_like(yin[fil],False).astype(bool)
+    slope_in[yin[fil] >= (xin[fil]*slope+intercept)]=True
+    
+    print('fraction kept ', yin[fil][slope_in.astype(bool)].shape[0]/yin[fil].shape[0])
+    
+    f_slope[fil]=slope_in
+    
+    
+    return f_slope.astype(bool)
+        
+
+
 ###########################
 #Work in progress
 ###########################
+
+
+
 
 
 def correlation_filter(xin,yin,fil,xray_on,threshold,showplot=False):
