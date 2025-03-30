@@ -42,6 +42,15 @@
 - False
 ###### 'corr_threshold' : threshold for correlation filter, threshold is fractional residual limit (eg. 0.03 means residuals should be <= 0.03 of the value to be kept)
 - float
+
+###### 'slope_filter': whether to filter on Iscat vs I0 correlation slope, will overrule 'corr_filter' settings if True
+- True
+- False
+###### 'slope_param': slope and intercept for filter line.  everything below line will be thrown out
+- (float,float)
+
+
+  
 ###### 'ipm_filter' :  set low and high limits for ipm readout
 - (float,float), (float,None), (None,float), (None,None)
 ###### 'Iscat_threshold' :  lower limit for Iscat value
