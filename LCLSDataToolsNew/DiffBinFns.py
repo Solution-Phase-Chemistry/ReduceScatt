@@ -155,7 +155,8 @@ def NormalFactor(paramDict,outDict):
     
     
     outDict['normal_factor']=normal_factor
-    outDict['loff_cake']=cake
+    outDict['loff_cake']=np.nanmean(cspad_azav[early_x,:,:],0)
+    outDict['loff_cake_norm']=cake
     
     print('normalize data done!')
     
