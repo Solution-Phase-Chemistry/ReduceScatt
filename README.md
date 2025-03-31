@@ -14,6 +14,7 @@ Filter and time bin the azimuthally averaged X-ray scattering smalldata from LCL
 - Master_XSS: reduction and useful jupyter notebook cells for fitting data and stacking; this notebook is not intended to be run sequentially, but to have all the useful sections that you may choose to run
 - example_overlap:  simple notebook that can be run in sequence for a lensh scan
 - example_delay_v1: simple notebook that can be run in sequence for a set of delay scans
+- StepbyStep:  Splits up the ReduceData function into its component steps, run them one at a time. 
 ### old notebooks 
 - ScatteringSteps.ipynb shows the individual subfunctions used to process the data \
 - ScatteringTest.ipynb tests the ReduceData function that calls the individual subfunctions in sequence. 
