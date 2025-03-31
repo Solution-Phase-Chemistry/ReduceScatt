@@ -16,8 +16,6 @@ from LCLSDataToolsNew.binningToolsErr import *
 from LCLSDataToolsNew.anisotropyToolsAll import *
 from LCLSDataToolsNew.SVDTools import *
 
-from sklearn.linear_model import RANSACRegressor as RSC
-from sklearn.linear_model import LinearRegression as LR
 
 ''' Set up functions and filters '''
 
@@ -88,6 +86,18 @@ def AzavStdFilter(paramDict,outDict):
     print('AzavStdFilt - done!')
 
     
+def NegativeCountsOffset(outDict):
+    ''' if pedestal is bad and we have negative counts in some bins, add constant offset'''
+    azav=outDict['h5Dict']['azav']
+    
+    if np.any(azav[~np.isnan(azav)]<0):
+        print('negative values in azav!')
+        print('offsetting by', np.nanmin(azav))
+        azav=azav-np.nanmin(azav)
+        
+    outDict['h5Dict']['azav']=azav
+
+
     
     
 def MaskAzav(paramDict,outDict,listBinInd=None):
@@ -131,6 +141,8 @@ def setupFilters(paramDict,outDict):
     ## calculate Iscat aka Isum (but actually average?) check this
     azav_temp=outDict['h5Dict']['azav']
     Iscat=np.nanmean(azav_temp,(1,2)) #mean along 2 axes
+    # Iscat=np.nansum(azav_temp,(1,2)) #mean along 2 axes
+
     outDict['Iscat']=Iscat
     outDict['numshots']=azav_temp.shape[0]
     print('calculated Iscat') 
@@ -153,8 +165,9 @@ def setupFilters(paramDict,outDict):
 
 def IscatFilters(paramDict,outDict):
     '''
-    if corr_filter then use ipm thresholds and Iscat/ipm correlation fit to filter
-    histogram filter of Iscat 80%'''
+    use ipm thresholds and Iscat/ipm correlation fit to filter, 
+    histogram filter of Iscat 80%, correlation and slop filters,
+    '''
     
     Iscat=outDict['Iscat']
     f_xon=outDict['filters']['f_xon']
@@ -163,7 +176,7 @@ def IscatFilters(paramDict,outDict):
     
     
         ##create filter on xray intensity keeping 80% of shots
-    l,r,frac,f_Iscat=slice_histogram(Iscat,f_xon&(Iscat>Iscat_thresh),0.80, 
+    l,r,frac,f_Iscat=slice_histogram(Iscat,f_xon&(Iscat>Iscat_thresh),0.99, 
                                       showplot=paramDict['show_filters'], fig='red', field='Iscat',sub=221)
     outDict['filters']['f_Iscat']=f_Iscat
     outDict['filters']['f_good']=f_Iscat&f_xon ##formerly known as f_intens
@@ -173,33 +186,25 @@ def IscatFilters(paramDict,outDict):
     ipmi=outDict['h5Dict'][ipmkey]
     
     ### ipm_thresholds
+    f_Ipm=None
     if paramDict['ipm_filter'][0] != None:
         f_Ipm=(ipmi>ipm_thresh[0])
     if paramDict['ipm_filter'][1] != None:
         f_Ipm=f_Ipm & (ipmi<ipm_thresh[1])  
     outDict['filters']['f_Ipm']=f_Ipm
     outDict['filters']['f_good']=outDict['filters']['f_good'] & f_Ipm
-    
+
+
+    #corr overides slope
     if (paramDict['corr_filter'] & paramDict['slope_filter']):
-        paramDict['slope_filter']==False
+        paramDict['slope_filter']=False
         
     if paramDict['slope_filter']:
-        
-         ##set ipm thresholds
-        # ipmkey='ipm'+str(paramDict['ipm'])
-        # ipmi=outDict['h5Dict'][ipmkey]
-        ipmfilt=np.full_like(ipmi,1)
-        if paramDict['ipm_filter'][0] != None:
-            ipmfilt=np.logical_and((ipmfilt),(ipmi>ipm_thresh[0]))
-        if paramDict['ipm_filter'][1] != None:
-            ipmfilt=np.logical_and((ipmfilt),(ipmi<ipm_thresh[1]))
-        
-        nanfilt=~np.isnan(Iscat)&~np.isnan(ipmi)&(ipmfilt)&(Iscat>Iscat_thresh)
-        
+
+        nanfilt=~np.isnan(Iscat)&~np.isnan(ipmi)&(f_Ipm)&(Iscat>Iscat_thresh)
         
         f_slope=slope_filter(ipmi, Iscat,nanfilt, 
                              paramDict['slope_param'][0], intercept=paramDict['slope_param'][1])
-        # print(f_slope)
         
         outDict['filters']['f_slope']=f_slope
         outDict['filters']['f_good']=outDict['filters']['f_good'] & f_slope
@@ -208,51 +213,19 @@ def IscatFilters(paramDict,outDict):
         
     
     
-    elif paramDict['corr_filter']:
+    if paramDict['corr_filter']:
         print('making correlation filter')
         
         thresh=paramDict['corr_threshold']
         
-        ##set ipm thresholds
-        # ipmkey='ipm'+str(paramDict['ipm'])
-        # ipmi=outDict['h5Dict'][ipmkey]
-        ipmfilt=np.full_like(ipmi,1)
-        if paramDict['ipm_filter'][0] != None:
-            ipmfilt=np.logical_and((ipmfilt),(ipmi>ipm_thresh[0]))
-        if paramDict['ipm_filter'][1] != None:
-            ipmfilt=np.logical_and((ipmfilt),(ipmi<ipm_thresh[1]))
-        
-    
-        ## correlation filter of ipm vs Isum
-        
-        #RANSAC fit to line
-        nanfilt=~np.isnan(Iscat)&~np.isnan(ipmi)&(ipmfilt)&(Iscat>Iscat_thresh)
+        nanfilt=~np.isnan(Iscat)&~np.isnan(ipmi)&(f_Ipm)&(Iscat>Iscat_thresh)
         ipm1=np.expand_dims(ipmi[nanfilt],axis=1)
         Isum1=Iscat[nanfilt]
+        
+        ## correlation filter of ipm vs Isum
 
-        RSCthresh=10 #inlier/outlier threshold
-        trialN=100 #number of RANSAC trials to preform
-        trialsRSC=np.arange(trialN)
-        outRSC=np.full((trialN,2),np.nan)
-        for i in trialsRSC:
-            #fit_intercept=False: y=mx
-            reg=RSC(estimator=LR(fit_intercept=True), 
-                    residual_threshold=RSCthresh,max_trials=10000,is_data_valid=None).fit(ipm1,Isum1)
-
-            outRSC[i,0]=reg.estimator_.coef_[0] #slope
-            outRSC[i,1]=reg.estimator_.intercept_ #intercept 
-
-
-        #find average slope 
-        mm=np.nanmean(outRSC[:,0])
-        bb=np.nanmean(outRSC[:,1]) 
-        #find inliers
-        residF=np.abs((mm*ipm1.squeeze()+bb)-Isum1.squeeze())/Isum1.squeeze()
-        in_mask=residF<=thresh #inliers
-        out_mask=residF>thresh #outliers
-        line_y=ipm1[in_mask]*mm+bb
-        print('correlation equation = %e x +%e' %(mm,bb))
-        print('fraction of data kept %e' %(Isum1[in_mask].shape[0]/Isum1.shape[0]))
+        in_mask,line_y=correlation_filter_RANSAC(ipm1, Isum1,thresh,subset=1000,intercept=True)
+        
         f_corr=np.zeros(Iscat.shape).astype(bool)
         f_corr[nanfilt]=in_mask
         outDict['filters']['f_corr']=f_corr
@@ -279,16 +252,15 @@ def IscatFilters(paramDict,outDict):
             slopex=np.arange(np.nanmin(ipmi),np.nanmax(ipmi),1)
             slopeline=paramDict['slope_param'][0]*slopex+paramDict['slope_param'][1]
             plt.plot(slopex,slopeline,color='r')
-            plt.fill_between(slopex,slopeline,color='r',alpha=.1)
-            
+            plt.fill_between(slopex,slopeline,color='r',alpha=.1)  
         else:
             nanfilt=~np.isnan(Iscat)&~np.isnan(ipmi)
             plt.hist2d(ipmi[nanfilt].squeeze(),Iscat[nanfilt].squeeze(),100,cmap='Greys',
                        norm=mpl.colors.SymLogNorm(linthresh=1, linscale=1))
           
-        if paramDict['ipm_filter'][0] != None:
+        if ipm_thresh[0] != None:
             plt.axvline(ipm_thresh[0],ls='--',color='r')
-        if paramDict['ipm_filter'][1] != None:
+        if ipm_thresh[1] != None:
             plt.axvline(ipm_thresh[1],ls='--',color='r')
         # plt.ticklabel_format(scilimits=(-3,3))
         plt.xlabel(ipmkey)

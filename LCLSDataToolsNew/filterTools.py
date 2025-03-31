@@ -4,6 +4,9 @@ from matplotlib import pyplot as plt
 import scipy
 from scipy.stats import mstats
 from scipy.stats.mstats import theilslopes
+from sklearn.linear_model import RANSACRegressor as RSC
+from sklearn.linear_model import LinearRegression as LR
+import random
 
 
 def FitOffset(intens1, intens2):
@@ -109,6 +112,61 @@ def slope_filter(xin, yin,fil, slope, intercept=0):
         
 
 
+
+
+def correlation_filter_RANSAC(ipm1, Isum1,thresh,subset=None,intercept=True):
+    '''use ransac algorithm to find line of best fit to correlation data.
+        to do:  also add parallelized version.
+        
+        thresh: threshold for residual such that if residuals are larger points are rejected
+        subset: use a subset of the data to fit line;
+        intercept: boolean, if true fit eqn is mx+b, if false fit eqn is mx
+        '''
+
+    ## correlation filter of ipm vs Isum
+    
+    #RANSAC fit to line
+    RSCthresh=10 #inlier/outlier threshold
+    trialN=20 #number of RANSAC trials to preform
+    trialsRSC=np.arange(trialN)
+    outRSC=np.full((trialN,2),np.nan)
+    for i in trialsRSC:
+        
+        if subset is not None:
+            temp_indx=np.arange(ipm1.shape[0])
+            random.shuffle(temp_indx)
+            indx=temp_indx[:subset] #choose random subset of indices
+        else:
+            indx=np.arange(ipm1.shape[0])
+            
+        #fit_intercept=False: y=mx
+        reg=RSC(estimator=LR(fit_intercept=intercept), 
+                residual_threshold=RSCthresh,max_trials=100,is_data_valid=None).fit(ipm1[indx],Isum1[indx])
+
+        outRSC[i,0]=reg.estimator_.coef_[0] #slope
+        outRSC[i,1]=reg.estimator_.intercept_ #intercept 
+
+
+    #find average slope 
+    mm=np.nanmean(outRSC[:,0])
+    bb=np.nanmean(outRSC[:,1]) 
+
+    #find inliers
+    residF=np.abs((mm*ipm1.squeeze()+bb)-Isum1.squeeze())/Isum1.squeeze()
+    in_mask=residF<=thresh #inliers
+    out_mask=residF>thresh #outliers
+    line_y=ipm1[in_mask]*mm+bb
+    print('correlation equation = %e x +%e' %(mm,bb))
+    print('slope std',np.nanstd(outRSC[:,0]))
+    print('intercept std',np.nanstd(outRSC[:,1]))
+    print('fraction of data kept %e' %(Isum1[in_mask].shape[0]/Isum1.shape[0]))
+    
+
+    return in_mask, line_y
+
+
+
+
 ###########################
 #Work in progress
 ###########################
@@ -117,7 +175,7 @@ def slope_filter(xin, yin,fil, slope, intercept=0):
 
 
 
-def correlation_filter(xin,yin,fil,xray_on,threshold,showplot=False):
+def correlation_filter_Theil(xin,yin,fil,xray_on,threshold,showplot=False):
     '''Fits a line to (xin[fil],yin[fil]). Then, of all points with xray_on, pick points closest to this line until 
     a fraction of the points are included, specified by 'threshold'. Returns [correlation_filter, correlation_filter&fil]. '''
     x=xin[fil]
@@ -151,3 +209,4 @@ def correlation_filter(xin,yin,fil,xray_on,threshold,showplot=False):
         closefig()
     combined_filter=fil&corr_filter
     return corr_filter, combined_filter
+

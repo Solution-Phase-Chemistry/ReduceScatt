@@ -94,6 +94,7 @@ def fitIRFtt0(S2N,ErrN,Ref2,tt0L,sigma,tnew1,goodt):
     for ii,tt0 in enumerate(tt0L):
         testIRF=gaus(tnew1,1,tt0,sigma,0)
         aa=convolve(Ref2,testIRF,mode='same')
+        # aa=aa[:(aa.shape[0]+1)//2]
         aaN=aa/np.nanmax(aa)
         chiAll[ii]=chi2(aaN[goodt],S2N[goodt],ErrN,goodt.shape[0],2)
     return chiAll
@@ -170,6 +171,7 @@ def doIRFfit(S2s,S2_std,qs=None,ts=None,ref=None,tref=None,tt0L=None,sigmaL=None
 
     outIRF=gaus(tnew1,1,tt0L[args[1]],sigmaL[args[0]],0)
     outaa=convolve(Ref2,outIRF,mode='same')
+    # outaa=outaa[:(outaa.shape[0]+1)//2]
     outaaN=outaa/np.nanmax(outaa)
 
     plt.subplot(1,3,2)

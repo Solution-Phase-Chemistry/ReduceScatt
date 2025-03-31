@@ -180,6 +180,7 @@ def ReduceData(inDir,exper,runs,outDir,paramDict1,varDict):
         outDict={}
         then=time.time()
         LoadH5(fname,outDir,varDict,paramDict, outDict)
+        # NegativeCountsOffset(outDict)
         # MaskAzav(paramDict,outDict,listBinInd=np.array([[0,0],[6,425],[6,400],[6,401]]))
         setupFilters(paramDict,outDict)
         IscatFilters(paramDict,outDict)
@@ -239,7 +240,7 @@ def overviewPlot(figdir,paramDict,outDict):
     phis=outDict['phis']
     ts=outDict['xcenter']
     qs=outDict['qs'] 
-    cake=outDict['loff_cake']
+    cake=outDict['loff_cake_norm']
     scanvar=paramDict['scan_var']
     numshots=outDict['numshots']
     numshots_used=outDict['numshots_used']
@@ -294,6 +295,7 @@ def overviewPlot(figdir,paramDict,outDict):
         plt.ylabel(' Q ($\AA^{-1}$) ')
         resax[0,0].set_title('$S_{off}$')
     resax[0,0].set_xlabel('phi (rad)')
+    plt.clim(np.nanmin(cake)*.05,np.nanmax(cake)*.95)
     
     
     ##### plot the average of each slice; should be flat
@@ -304,7 +306,7 @@ def overviewPlot(figdir,paramDict,outDict):
     ax2.set_ylim([0,np.nanmax(avg)])
     ax2.set_ylabel('Ave Intensity')
     
-    ##### plot the 1d average curve of the same
+    ##### plot the 1d average curve of the cake
     plt.figure('res')
     plt.subplot(nplot,2,2)
     plt.plot(qs,cake.T,'k--',alpha=0.2)
@@ -319,7 +321,8 @@ def overviewPlot(figdir,paramDict,outDict):
 
     logscan=(np.abs(np.nanmax(ts)/np.nanmin(ts)))>1e3 # is the range we are scanning a lot of orders of magnitude? If so, plot nicer
     print('logscan '+str(logscan))
-    everynth=(np.arange(len(ts))%5==0)
+    nth=len(ts)//8 ### for 8 traces in plot
+    everynth=(np.arange(len(ts))%nth==0)
     diff2d=np.nanmean(diff,1)#average over phis
     if len(diff.shape)==2:
         diff2d=diff
@@ -363,7 +366,7 @@ def overviewPlot(figdir,paramDict,outDict):
     
     
     if aniso:
-        print('plottingn aniso')
+        print('plotting aniso')
         print(diff.shape)
         print(phis.shape)
 
@@ -435,6 +438,8 @@ def overviewPlot(figdir,paramDict,outDict):
     now = time.time() #Time after it finished
     print('done')
 
+
+
 def letsFilter(inDir,exper,run,outDir,paramDict1,varDict):
     ''' only run the filtering steps of ReduceData to set parameters.  Does not save plots or anything. Only processes one run at a time.'''
     plt.close('all')
@@ -452,3 +457,4 @@ def letsFilter(inDir,exper,run,outDir,paramDict1,varDict):
         TTfilter(paramDict,outDict)
     now = time.time() #Time after it finished
     print(now-then, " seconds")
+

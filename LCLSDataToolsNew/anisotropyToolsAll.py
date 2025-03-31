@@ -450,8 +450,10 @@ def S0S2_checkD(dat,phis,qs,ts,shiftRange=(0,360),dshift=10,trange='All',lim=Non
     
     pool = Pool(processes=20)
     poolScan=range(len(shifts))
+    # print(poolScan)
     results=[]
     for ii in poolScan:
+
         results.append(pool.apply_async(S0S2perT,args=(cake,(3*np.cos(phis-shifts[ii])**2-1)/2)))
     pool.close()
     pool.join()
