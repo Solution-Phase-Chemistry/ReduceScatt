@@ -43,7 +43,7 @@
 ###### 'corr_threshold' : threshold for correlation filter, threshold is fractional residual limit (eg. 0.03 means residuals should be <= 0.03 of the value to be kept)
 - float
 
-###### 'slope_filter': whether to filter on Iscat vs I0 correlation slope, will overrule 'corr_filter' settings if True
+###### 'slope_filter': whether to filter on Iscat vs I0 correlation slope, will be overruled by 'corr_filter' settings if both True
 - True
 - False
 ###### 'slope_param': slope and intercept for slope filter line.  everything below line will be thrown out
