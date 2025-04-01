@@ -24,6 +24,6 @@ Filter and time bin the azimuthally averaged X-ray scattering smalldata from LCL
 ## LCLSDataToolsNew
  --Fns.py are the subfunctions used to process and reduce the data.  Use these subfunctions if you want to do the steps in sequence or to create a custom ReduceData function \
 --Tools.py are sub-sub functions called from the subfunctions. \
-see ScatCodeInfo.md for list of all functions in each .py file
+
 
 
