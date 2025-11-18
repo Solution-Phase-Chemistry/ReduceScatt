@@ -98,19 +98,7 @@ def MakeScanAx(paramDict,outDict,tt_corrNew=None):
 
     
     
-def DarkSubtract(paramDict,outDict):
-    
-    f_xoff=outDict['filters']['f_xoff']
-    azav_temp=outDict['h5Dict']['azav']
 
-    #### subtract mean of dark curves ######    
-    dark = azav_temp[f_xoff, :,:]
-    darkMean = np.nanmean(dark,0)
-    azav_temp = azav_temp - darkMean
-
-    azav_temp=outDict['h5Dict']['azav']
-    
-    print('x-ray off subtraction done!')
     
     
 
@@ -130,7 +118,16 @@ def NormalFactor(paramDict,outDict):
     
     #### how to normalize: by the Isum, or by a section of the high Q range?
     if qnorm is None:
+
+        #
         normal_factor=Isum
+        print('normalizing by Isum')
+        
+        # ipmkey='ipm'+str(paramDict['ipm'])
+        # ipmi=outDict['h5Dict'][ipmkey]
+        # normal_factor=ipmi
+        # print('normalizing by ipm')
+        
         normal_factor_e=normal_factor
 
     else:
@@ -141,8 +138,9 @@ def NormalFactor(paramDict,outDict):
         
         
         
-    ####### save 300 off shots averaged as cake#####
-    early_x=np.where(f_intens&f_loff)[0][:300]
+    ####### save N_off off shots averaged as cake#####
+    N_off=-1
+    early_x=np.where(f_intens&f_loff)[0][:N_off]
     assert len(early_x)>1, "There are no valid laser-off shots; lightStatus/laser is %s"%str(d['lightStatus']['laser'][:20])
 #             print(f_lon)
 #             print(f_loff)
@@ -178,7 +176,7 @@ def NormalFactor(paramDict,outDict):
     
     
 def EnergyCorr(paramDict,outDict):
-    '''apply photon energy correction using SVD, use after normalization.'''
+    '''apply photon energy correction using SVD, use after normalization. '''
     
     print('applying energy correction')
     ebeam=outDict['h5Dict']['ebeam_hv']
@@ -189,11 +187,20 @@ def EnergyCorr(paramDict,outDict):
     Isum=outDict['Iscat']
     qs=outDict['h5Dict']['qs']
 
-    energy_corr_2d=SVDcorrection(azav_temp,ebeam,qs,filt=(f_xon&f_intens&f_loff),n=1,binp=100,poly=2)
- 
-    cspad_azav=azav_temp-energy_corr_2d
-    
-    outDict['h5Dict']['azav']=cspad_azav
+    if EnergyCorr=='SVD':
+        print('do SVD ebeam corrections')
+        energy_corr_2d=SVDcorrection(azav_temp,ebeam,
+                                     qs,filt=(f_xon&f_intens&f_loff),n=1,binp=100,poly=2)
+        cspad_azav=azav_temp-energy_corr_2d
+        outDict['h5Dict']['azav']=cspad_azav
+        
+    elif EnergyCorr == 'SVDbyBin':
+        print('do SVD nonlinear corrections for each phi bin')
+        
+        energy_corr_3d=SVDcorrectionByBin(azav_temp,ebeam,
+                                          qs,filt=(f_xon&f_intens&f_loff),n=1,binp=100,poly=2)
+        cspad_azav=azav_temp-energy_corr_3d
+        outDict['h5Dict']['azav']=cspad_azav
 
     
 
