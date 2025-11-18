@@ -69,8 +69,9 @@
 - True
 - False
 ###### 'energy_corr' : ebeam photon energy correction
-- True
-- False
+- None
+- 'SVD'  uses SVD correction on azimuthally averaged signal
+- 'SVDbyBin' uses SVD correction for each phi bin
 ###### 'NonLin_corr' : detector nonlinearity (with respect to intensity) correction
 - None
 - 'SVD'  uses SVD correction on azimuthally averaged signal
