@@ -180,9 +180,10 @@ def ReduceData(inDir,exper,runs,outDir,paramDict1,varDict):
         outDict={}
         then=time.time()
         LoadH5(fname,outDir,varDict,paramDict, outDict)
-        # NegativeCountsOffset(outDict)
-        # MaskAzav(paramDict,outDict,listBinInd=np.array([[0,0],[6,425],[6,400],[6,401]]))
         setupFilters(paramDict,outDict)
+        DarkSubtract(paramDict,outDict)
+        # NegativeCountsOffset(outDict)
+        # MaskAzav(paramDict,outDict,listBinInd=np.array([[0,0],[0,425],[6,400],[6,401]]))
         IscatFilters(paramDict,outDict)
         # eBeamFilter(paramDict,outDict)
         if paramDict['use_TT'] is not False:
@@ -195,10 +196,9 @@ def ReduceData(inDir,exper,runs,outDir,paramDict1,varDict):
             EnforceIso(paramDict,outDict)
         
         MakeScanAx(paramDict,outDict,tt_corrNew=None)
-        DarkSubtract(paramDict,outDict)
         NormalFactor(paramDict,outDict)
         
-        if paramDict['energy_corr']:
+        if paramDict['energy_corr'] is not None:
             EnergyCorr(paramDict,outDict)
         if paramDict['NonLin_corr'] is not None:
             DetectorNonlinCorr(paramDict,outDict)
@@ -449,6 +449,7 @@ def letsFilter(inDir,exper,run,outDir,paramDict1,varDict):
     outDict={}
     then=time.time()
     LoadH5(fname,outDir,varDict,paramDict, outDict)
+    # NegativeCountsOffset(outDict)
     # MaskAzav(paramDict,outDict,listBinInd=np.array([[0,0],[6,425],[6,400],[6,401]]))
     setupFilters(paramDict,outDict)
     IscatFilters(paramDict,outDict)

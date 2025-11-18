@@ -136,16 +136,7 @@ def MaskAzav(paramDict,outDict,listBinInd=None):
     
     
 def setupFilters(paramDict,outDict):
-    ''' calculate Iscat and set up laser on/off etc filters'''
-    
-    ## calculate Iscat aka Isum (but actually average?) check this
-    azav_temp=outDict['h5Dict']['azav']
-    Iscat=np.nanmean(azav_temp,(1,2)) #mean along 2 axes
-    # Iscat=np.nansum(azav_temp,(1,2)) #mean along 2 axes
-
-    outDict['Iscat']=Iscat
-    outDict['numshots']=azav_temp.shape[0]
-    print('calculated Iscat') 
+    ''' set up laser on/off etc filters'''
     
     
     ### set up filters
@@ -160,7 +151,26 @@ def setupFilters(paramDict,outDict):
     outDict['filters']['f_good']= outDict['filters']['f_xon']
     print('setupFilters - done!')
     
+
+
+
+def DarkSubtract(paramDict,outDict):
     
+    f_xoff=outDict['filters']['f_xoff']
+    azav_temp=outDict['h5Dict']['azav']
+
+    #### subtract mean of dark curves ######    
+    dark = azav_temp[f_xoff, :,:]
+    darkMean = np.nanmean(dark,0)
+    azav_temp = azav_temp - darkMean
+
+    azav_temp=outDict['h5Dict']['azav']
+    
+    print('x-ray off subtraction done!')
+
+
+
+
     
 
 def IscatFilters(paramDict,outDict):
@@ -168,8 +178,20 @@ def IscatFilters(paramDict,outDict):
     use ipm thresholds and Iscat/ipm correlation fit to filter, 
     histogram filter of Iscat 80%, correlation and slop filters,
     '''
+
+    ## calculate Iscat aka Isum (but actually average?) check this
+    azav_temp=outDict['h5Dict']['azav']
+    # Iscat=np.nanmean(azav_temp,(1,2)) #mean along 2 axes
+    Iscat=np.nansum(azav_temp,(1,2)) #sum along 2 axes
+
+    outDict['Iscat']=Iscat
+    outDict['numshots']=azav_temp.shape[0]
+    print('calculated Iscat') 
+
+
+    ######
+
     
-    Iscat=outDict['Iscat']
     f_xon=outDict['filters']['f_xon']
     Iscat_thresh=paramDict['Iscat_threshold']
     ipm_thresh=paramDict['ipm_filter']
@@ -224,13 +246,17 @@ def IscatFilters(paramDict,outDict):
         
         ## correlation filter of ipm vs Isum
 
-        in_mask,line_y=correlation_filter_RANSAC(ipm1, Isum1,thresh,subset=1000,intercept=True)
+        corrD=correlation_filter_RANSAC(ipm1, Isum1,thresh,subset=1000,intercept=True)
+        in_mask=corrD['in_mask']
+        line_y=corrD['line_y']
         
         f_corr=np.zeros(Iscat.shape).astype(bool)
         f_corr[nanfilt]=in_mask
         outDict['filters']['f_corr']=f_corr
         outDict['filters']['f_good']=outDict['filters']['f_good'] & f_corr
-                    
+        outDict['corr_slope']=corrD['mm']
+        outDict['corr_intercept']=corrD['bb']
+        
         ## plot
     if paramDict['show_filters']: 
         plt.figure('red')
@@ -324,7 +350,7 @@ def TTfilter(paramDict,outDict):
     f_good=outDict['filters']['f_good']
 
     ## filter on TT amplitude
-    f_ttamp=(ttamp>0.002)  #ccm
+    f_ttamp=(ttamp>0.002)&(ttamp<1)  #ccm
     # f_ttamp=(ttamp>0.02)  #SASE
     
     #slice_histogram mainly to plot ttamp hist, f_ttamp is the important one
@@ -340,7 +366,7 @@ def TTfilter(paramDict,outDict):
 
     ##filter based on TT fwhm
     l,r,frac,f_ttfwhm=slice_histogram(ttfwhm,
-                                      f_lon&f_good&(ttfwhm>70)&(ttfwhm<150),
+                                      f_lon&f_good&(ttfwhm>0.0001)&(ttfwhm<250),
                                       FWHM_percent,showplot=showfilt,
                                       fig='red',field='TTfwhm',sub=235)
     print('TTFWHM: fraction_kept ',frac,' lower ', l,' upper ',r)
@@ -348,7 +374,7 @@ def TTfilter(paramDict,outDict):
 
     ## filter based on TT position
     l,r,frac,f_ttpos=slice_histogram(ttpos,
-                                      (f_good&f_ttamp&(ttpos>10)),
+                                      (f_good&f_lon&(ttpos>10)),
                                       POS_percent,showplot=showfilt,
                                      field='TTpos',fig='red',sub=236)
     print('TTPOS: fraction_kept ',frac,' lower ', l,' upper ',r)

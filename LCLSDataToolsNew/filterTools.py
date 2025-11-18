@@ -160,9 +160,10 @@ def correlation_filter_RANSAC(ipm1, Isum1,thresh,subset=None,intercept=True):
     print('slope std',np.nanstd(outRSC[:,0]))
     print('intercept std',np.nanstd(outRSC[:,1]))
     print('fraction of data kept %e' %(Isum1[in_mask].shape[0]/Isum1.shape[0]))
-    
 
-    return in_mask, line_y
+    outD={'in_mask':in_mask,'line_y':line_y, 'mm':mm,'bb':bb}
+
+    return outD
 
 
 

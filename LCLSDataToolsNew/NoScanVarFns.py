@@ -75,7 +75,7 @@ def RedNoScanV(inDir,exper,runs,outDir,paramDict1,varDict):
 
         
         
-def StackNoScanVar(inpath,exper,runs,base=None, method='bincount'):
+def StackNoScanVar(inpath,exper,runs,base=None, method='WAve'):
     ''' for runs in experiment, load .npy files from inpath and stack runs using method specified.
     Methods that return average signal per t bin:
     'bincount' = weigh each run by number of shots per bin and sum, then divide by total shots in bin
@@ -98,13 +98,13 @@ def StackNoScanVar(inpath,exper,runs,base=None, method='bincount'):
             data1=np.load(inpath+exper+'_Run%04i_out.npy'%run,allow_pickle=True).item()
         else:
             data1=np.load(inpath+exper+'_Run%04i'%run+base+'_out.npy',allow_pickle=True).item()
-        AllData.append(data1['diff_bin'])
+        AllData.append(data1['diff_bin'].squeeze())
         AllTs.append(data1['xcenter'])
         AllQs.append(data1['qs'])
         AllPhis.append(data1['phis'])
         AllBC.append(data1['xbin_occupancy'])
         if method=='WAve':
-            AllErr.append(data1['diff_err'])
+            AllErr.append(data1['diff_std'].squeeze())
         
         
     ## check that all ts and qs are the same or throw error 
@@ -134,4 +134,9 @@ def StackNoScanVar(inpath,exper,runs,base=None, method='bincount'):
         sumBC=np.nansum(AllBC,axis=0) ##total shots per bin
         aveD=divAny(sumD,sumBC,axis=(1,0)) #average signal per shot per bin
         stackDict={'aveData':aveD,'sumBC':sumBC,'ts':ts,'qs':qs,'phis':phis,'runs':runs,'method':method}
+        return stackDict
+    elif method=='WAve':
+        AllErr=np.array(AllErr)
+        aveD,Derr=WAve(AllData,AllErr,axis=0)
+        stackDict={'aveData':aveD,'errData':Derr,'qs':qs,'phis':phis,'runs':runs,'method':method}
         return stackDict
