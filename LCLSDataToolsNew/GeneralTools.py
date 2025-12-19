@@ -170,7 +170,11 @@ def h5fromDict(fname,outDict):
         # round one
         dictKeys,dictVals,otherKeys,otherVals=findDicts(outDict)
         for ii,key in enumerate(otherKeys):
-            hf.create_dataset(key,data=otherVals[ii])
+            try:
+                hf.create_dataset(key,data=otherVals[ii])
+            except:  ## if key value is None, replace with string 'None'
+                hf.create_dataset(key,data='None')
+
         otherVals=[]
         otherKeys=[]
 
@@ -183,10 +187,14 @@ def h5fromDict(fname,outDict):
                 dictKeys.append(key+'/'+key2)
                 dictVals.append(dictVals2[ii])
             for ii,key2 in enumerate(otherKeys2):
-                hf.create_dataset(key+'/'+key2,data=otherVals2[ii])
+                try:
+                    hf.create_dataset(key+'/'+key2,data=otherVals2[ii])
+                except:  ## if key value is None, replace with string 'None'
+                    hf.create_dataset(key+'/'+key2,data='None')
             del dictKeys[0]
             del dictVals[0]
         #and we are done
+        
         
         
 
