@@ -143,6 +143,53 @@ def q2twoTheta(q,lam):
 
     return tthet
 
+
+########### python dictionary to h5 functions ##############
+
+def findDicts(outDict):
+    ''' find and isolate keys and values for dictionaries from other keys and values within the parent dictionary
+    '''
+    dictKeys=[]
+    dictVals=[]
+    otherKeys=[]
+    otherVals=[]
+    for key,value in outDict.items():
+        if type(value)==dict:
+            dictKeys.append(key)
+            dictVals.append(value)
+        else:
+            otherKeys.append(key)
+            otherVals.append(value)
+    return dictKeys,dictVals,otherKeys,otherVals
+
+
+def h5fromDict(fname,outDict):
+    '''' save h5 file with name fname, populate with dictionary outDict. many layers!'''
+    fh5 = fname
+    with h5py.File(fh5, 'w') as hf:
+        # round one
+        dictKeys,dictVals,otherKeys,otherVals=findDicts(outDict)
+        for ii,key in enumerate(otherKeys):
+            hf.create_dataset(key,data=otherVals[ii])
+        otherVals=[]
+        otherKeys=[]
+
+        #other rounds
+        while len(dictKeys) != 0:
+            key=dictKeys[0]
+            val=dictVals[0]
+            dictKeys2,dictVals2,otherKeys2,otherVals2=findDicts(val)
+            for ii,key2 in enumerate(dictKeys2):
+                dictKeys.append(key+'/'+key2)
+                dictVals.append(dictVals2[ii])
+            for ii,key2 in enumerate(otherKeys2):
+                hf.create_dataset(key+'/'+key2,data=otherVals2[ii])
+            del dictKeys[0]
+            del dictVals[0]
+        #and we are done
+        
+        
+
   
   
   
