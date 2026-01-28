@@ -164,7 +164,7 @@ def DarkSubtract(paramDict,outDict):
     darkMean = np.nanmean(dark,0)
     azav_temp = azav_temp - darkMean
 
-    azav_temp=outDict['h5Dict']['azav']
+    outDict['h5Dict']['azav']=azav_temp
     
     print('x-ray off subtraction done!')
 
