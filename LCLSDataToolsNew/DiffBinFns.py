@@ -179,6 +179,7 @@ def EnergyCorr(paramDict,outDict):
     '''apply photon energy correction using SVD, use after normalization. '''
     
     print('applying energy correction')
+    EnergyCorr=paramDict['energy_corr']
     ebeam=outDict['h5Dict']['ebeam_hv']
     f_xon=outDict['filters']['f_xon']
     f_intens=outDict['filters']['f_good']
