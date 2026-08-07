@@ -451,7 +451,7 @@ def FilterCheck(inDir,exper,run,outDir,paramDict1,varDict,return_dict=False):
     # NegativeCountsOffset(outDict)
     # MaskAzav(paramDict,outDict,listBinInd=np.array([[0,0],[6,425],[6,400],[6,401]]))
     setupFilters(paramDict,outDict)
-    # DarkSubtract(paramDict,outDict)
+    DarkSubtract(paramDict,outDict)
     IscatFilters(paramDict,outDict)
     # eBeamFilter(paramDict,outDict)
     if paramDict['use_TT'] is not False:

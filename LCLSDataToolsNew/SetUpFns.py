@@ -389,7 +389,7 @@ def TTfilter(paramDict,outDict):
 
     ## filter based on TT position
     l,r,frac,f_ttpos=slice_histogram(ttpos,
-                                      (f_good&f_lon&(ttpos>500)&(ttpos<1800)),
+                                      (f_good&f_lon&(ttpos>200)&(ttpos<1800)),
                                       POS_percent,showplot=showfilt,
                                      field='TTpos',fig='red',sub=236)
     print('TTPOS: fraction_kept ',frac,' lower ', l,' upper ',r)

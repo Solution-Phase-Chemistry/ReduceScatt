@@ -38,6 +38,9 @@ def MakeScanAx(paramDict,outDict,tt_corrNew=None):
     scanvec=outDict['h5Dict']['scan_vec']
     lxt=outDict['h5Dict']['lxt']
     enc=outDict['h5Dict']['encoder']
+    
+    f_intens=outDict['filters']['f_good']
+    f_lon=outDict['filters']['f_lon']
     if use_tt:
         ttCorr=outDict['h5Dict']['ttCorr']
     
@@ -94,7 +97,7 @@ def MakeScanAx(paramDict,outDict,tt_corrNew=None):
         print('using x_var for binning axis')
         
     outDict['xs']=x
-    
+    outDict['x_Data']=x[f_intens&f_lon]
 
     
     
@@ -298,7 +301,7 @@ def doDifference(paramDict,outDict):
     f_loff=outDict['filters']['f_loff']
     f_lon=outDict['filters']['f_lon']
     qerr=paramDict['useAzav_std']
-    x=outDict['xs']
+
     
     ### do the diff signal ###
     totaloff=np.nanmax(np.nanmean(cake,0))
@@ -313,10 +316,7 @@ def doDifference(paramDict,outDict):
         onErr=diff_err[f_intens&f_lon]
         outDict['diff_Err']=onErr
 
-    xData=x[f_intens&f_lon]
-    onData=diff[f_intens&f_lon]
     
-    outDict['x_Data']=x[f_intens&f_lon]
     outDict['diff_Data']=diff[f_intens&f_lon]
     # outDict['loff_cake_norm']=cake/totaloff
     
