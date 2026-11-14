@@ -181,7 +181,7 @@ def ReduceData(inDir,exper,runs,outDir,paramDict1,varDict):
         then=time.time()
         LoadH5(fname,outDir,varDict,paramDict, outDict)
         setupFilters(paramDict,outDict)
-        DarkSubtract(paramDict,outDict)
+        # DarkSubtract(paramDict,outDict)
         # NegativeCountsOffset(outDict)
         # MaskAzav(paramDict,outDict,listBinInd=np.array([[0,0],[0,425],[6,400],[6,401]]))
         IscatFilters(paramDict,outDict)
@@ -300,8 +300,12 @@ def overviewPlot(figdir,paramDict,outDict):
     ##### plot the average of each slice; should be flat
     ax2=plt.twinx()
     avg=np.nanmean(cake,1)
-    ax2.plot(phis[:-1]+0.5*np.diff(phis),avg,'-o',
+    try:
+        ax2.plot(phis+0.5*np.diff(phis),avg,'-o',
              markerfacecolor='white',markeredgecolor='black',color='black')
+    except:
+        ax2.plot(phis[:-1]+0.5*np.diff(phis),avg,'-o',
+                 markerfacecolor='white',markeredgecolor='black',color='black')
     ax2.set_ylim([0,np.nanmax(avg)])
     ax2.set_ylabel('Ave Intensity')
     
@@ -451,7 +455,7 @@ def FilterCheck(inDir,exper,run,outDir,paramDict1,varDict,return_dict=False):
     # NegativeCountsOffset(outDict)
     # MaskAzav(paramDict,outDict,listBinInd=np.array([[0,0],[6,425],[6,400],[6,401]]))
     setupFilters(paramDict,outDict)
-    DarkSubtract(paramDict,outDict)
+    # DarkSubtract(paramDict,outDict)
     IscatFilters(paramDict,outDict)
     # eBeamFilter(paramDict,outDict)
     if paramDict['use_TT'] is not False:

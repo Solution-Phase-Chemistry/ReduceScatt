@@ -54,6 +54,12 @@ def LoadH5(fname,outpath,varDict,paramDict,outDict):
                 paramDict['scan_var']='newdelay'
             
     print('scan variable is ', paramDict['scan_var'])
+
+    ## adjust dimensions if q and phi vectors are multidimensional arrays
+    if len(h5Dict['qs'].shape)!=1:
+        h5Dict['qs']=h5Dict['qs'][0,:].squeeze()
+    if len(h5Dict['phis'].shape)!=1:
+        h5Dict['phis']=h5Dict['phis'][0,:].squeeze()
     outDict['h5Dict']=h5Dict
     print('finished loading h5')
     

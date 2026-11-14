@@ -194,7 +194,7 @@ def EnergyCorr(paramDict,outDict):
     if EnergyCorr=='SVD':
         print('do SVD ebeam corrections')
         energy_corr_2d=SVDcorrection(azav_temp,ebeam,
-                                     qs,filt=(f_xon&f_intens&f_loff),n=1,binp=100,poly=2)
+                                     qs,filt=(f_xon&f_intens&f_loff),n=2,binp=100,poly=2)
         cspad_azav=azav_temp-energy_corr_2d
         outDict['h5Dict']['azav']=cspad_azav
         
@@ -202,7 +202,7 @@ def EnergyCorr(paramDict,outDict):
         print('do SVD ebeam corrections for each phi bin')
         
         energy_corr_3d=SVDcorrectionByBin(azav_temp,ebeam,
-                                          qs,filt=(f_xon&f_intens&f_loff),n=1,binp=100,poly=2)
+                                          qs,filt=(f_xon&f_intens&f_loff),n=2,binp=100,poly=2)
         cspad_azav=azav_temp-energy_corr_3d
         outDict['h5Dict']['azav']=cspad_azav
         print('energy correction - done!')

@@ -10,7 +10,7 @@ import sys
 import os
 import scipy.io as scio
 
-from scipy import interpolate as sintp
+from scipy.interpolate import interp1d
 from scipy.signal import deconvolve,convolve
 from scipy.optimize import curve_fit
 import scipy.ndimage as scnd
@@ -21,7 +21,19 @@ from multiprocessing import Pool
 from LCLSDataToolsNew.anisotropyToolsAll import *
 from LCLSDataToolsNew.plottingTools import *
 
+def gaus(x, a, b, c, d):
+    return a * np.exp(-1*(x-b)**2/2/c**2) + d
 
+def conv_gaus(t,Ref,t0,sigma):
+    '''convolve given Ref with a gaussian with t0 and sigma, return peak normalized
+    signal wrt t axis'''
+    IRF=gaus(t,1,t0,sigma,0)
+    R1=interp1d(t,Ref,bounds_error=False,fill_value=np.nan)
+    t2=t-t[0] ## make axis with t>0 but same length
+    Ref2=R1(t2)
+    aa=convolve(Ref2,IRF,mode='full')
+    bb=aa[0:t.shape[0]]/np.nanmax(aa)
+    return bb
 
 def IRFprep(ddata,qs=None,ts=None,ref=None,tref=None,qCenter=1.5,qWidth=.15,
            trange=None,qrange=None):
@@ -74,7 +86,6 @@ def IRFprep(ddata,qs=None,ts=None,ref=None,tref=None,qCenter=1.5,qWidth=.15,
     return S2s, S2_std
 
 
-
 def chi2(CalcSignal,ExpSignal,sigma,N,p):
     '''N = number of q points, p= number of free parameters, 
     sigma= standard deviationo at each q point 
@@ -92,16 +103,12 @@ def fitIRFtt0(S2N,ErrN,Ref2,tt0L,sigma,tnew1,goodt):
     ''' for each tt0 option calculate chiAll'''
     chiAll=np.full(tt0L.shape,np.nan)
     for ii,tt0 in enumerate(tt0L):
-        testIRF=gaus(tnew1,1,tt0,sigma,0)
-        aa=convolve(Ref2,testIRF,mode='same')
-        # aa=aa[:(aa.shape[0]+1)//2]
-        aaN=aa/np.nanmax(aa)
+        aaN=conv_gaus(tnew1,Ref2,tt0,sigma)
         chiAll[ii]=chi2(aaN[goodt],S2N[goodt],ErrN,goodt.shape[0],2)
     return chiAll
 
 
-def gaus(x, a, b, c, d):
-    return a * np.exp(-1*(x-b)**2/2/c**2) + d
+
 
 
 def doIRFfit(S2s,S2_std,qs=None,ts=None,ref=None,tref=None,tt0L=None,sigmaL=None,
@@ -111,18 +118,12 @@ def doIRFfit(S2s,S2_std,qs=None,ts=None,ref=None,tref=None,tt0L=None,sigmaL=None
     
 
 
-    #### interpolate all data to have matching t bins given by tnew1 ####
+    #### interpolate all data to have matching t bins given by tref ####
+    tnew1=tref
 
-    if np.nanmax(ts)>0.9:
-        tn_max=0.9
-    else:
-        tn_max=np.nanmax(ts)
-    tnew1=np.linspace(np.nanmin(ts),tn_max,200)
-    # tnew1=np.linspace(-.3,1,200)
-
-    RefIntp=sintp.interp1d(tref,ref)
-    S2Intp=sintp.interp1d(ts,S2s)
-    stdIntp=sintp.interp1d(ts,S2_std)
+    RefIntp=interp1d(tref,ref,bounds_error=False,fill_value=np.nan)
+    S2Intp=interp1d(ts,S2s,bounds_error=False,fill_value=np.nan)
+    stdIntp=interp1d(ts,S2_std,bounds_error=False,fill_value=np.nan)
 
     Ref2=np.full_like(tnew1,0)
     Ref2[tnew1>0]=RefIntp(tnew1[tnew1>0])
@@ -170,16 +171,14 @@ def doIRFfit(S2s,S2_std,qs=None,ts=None,ref=None,tref=None,tt0L=None,sigmaL=None
           'tt0',tt0L[args[1]])
 
     outIRF=gaus(tnew1,1,tt0L[args[1]],sigmaL[args[0]],0)
-    outaa=convolve(Ref2,outIRF,mode='same')
-    # outaa=outaa[:(outaa.shape[0]+1)//2]
-    outaaN=outaa/np.nanmax(outaa)
+    outaaN=conv_gaus(tnew1,Ref2,tt0L[args[1]],sigmaL[args[0]])
 
     plt.subplot(1,3,2)
     plt.plot(tnew1,S2N,label='S2')
     plt.plot(tnew1,outaaN,'b--',label='convolution')
     plt.plot(tnew1,Ref2,label='Reference')
     plt.plot(tnew1,outIRF,label='IRF')
-    plt.xlim(-1,1)
+    # plt.xlim(-1,1)
     plt.xlabel('t (ps)')
     ax[1].set_title('Best Fit')
     plt.legend()
